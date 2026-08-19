@@ -211,6 +211,7 @@ export function WhiteboardPanel() {
     <div className="relative h-full w-full overflow-hidden">
       <Tldraw
         store={store}
+        licenseKey="excurion-classroom-hobby"
         colorScheme="dark"
         className="h-full w-full"
         overrides={OVERRIDES}
