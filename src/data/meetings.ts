@@ -1,0 +1,333 @@
+import type { ActivityItem, ClassStatistics, Meeting } from '@/types/meeting'
+import type { Participant } from '@/types/meeting'
+import { currentUser, mockUsers } from './users'
+
+const now = Date.now()
+const minutesAgo = (m: number) => new Date(now - m * 60_000).toISOString()
+const hoursAgo = (h: number) => minutesAgo(h * 60)
+const daysAgo = (d: number) => hoursAgo(d * 24)
+const inMinutes = (m: number) => new Date(now + m * 60_000).toISOString()
+const inHours = (h: number) => inMinutes(h * 60)
+
+export const mockMeetings: Meeting[] = [
+  {
+    id: 'm-1',
+    title: 'Calculus II — Derivatives Review',
+    description: 'Weekly review session covering chain rule, implicit differentiation, and related rates.',
+    type: 'class',
+    status: 'live',
+    roomCode: 'calc-2x-deriv',
+    hostId: 'u-1',
+    subject: 'Mathematics',
+    participants: 14,
+    startedAt: minutesAgo(42),
+  },
+  {
+    id: 'm-2',
+    title: 'Physics — Newton’s Laws Lab',
+    description: 'Hands-on experiment walkthrough with data analysis in real time.',
+    type: 'class',
+    status: 'scheduled',
+    roomCode: 'phys-newton',
+    hostId: 'u-2',
+    subject: 'Physics',
+    participants: 22,
+    scheduledAt: inHours(2),
+    duration: 60,
+  },
+  {
+    id: 'm-3',
+    title: 'Office Hours — Algebra Support',
+    description: 'Open Q&A for anyone stuck on algebra fundamentals.',
+    type: 'office-hours',
+    status: 'scheduled',
+    roomCode: 'alg-support',
+    hostId: 'u-1',
+    subject: 'Mathematics',
+    participants: 0,
+    scheduledAt: inHours(5),
+    duration: 45,
+  },
+  {
+    id: 'm-4',
+    title: 'Chemistry — Periodic Trends',
+    description: 'Electronegativity, atomic radius, and ionization energy across groups and periods.',
+    type: 'class',
+    status: 'ended',
+    roomCode: 'chem-periodic',
+    hostId: 'u-9',
+    subject: 'Chemistry',
+    participants: 18,
+    scheduledAt: daysAgo(1),
+    duration: 90,
+    endedAt: daysAgo(1),
+    recordingUrl: '/recordings/m-4',
+  },
+  {
+    id: 'm-5',
+    title: '1:1 Mentorship — Priya & Ava',
+    description: 'Private session to review exam strategy.',
+    type: '1on1',
+    status: 'ended',
+    roomCode: 'mentor-priya',
+    hostId: 'u-1',
+    subject: 'Mathematics',
+    participants: 2,
+    scheduledAt: daysAgo(3),
+    duration: 30,
+    endedAt: daysAgo(3),
+    recordingUrl: '/recordings/m-5',
+  },
+  {
+    id: 'm-6',
+    title: 'Data Science — Intro to Pandas',
+    description: 'Guest lecture covering DataFrames, filtering, and groupby.',
+    type: 'webinar',
+    status: 'ended',
+    roomCode: 'ds-pandas',
+    hostId: 'u-2',
+    subject: 'Computer Science',
+    participants: 41,
+    scheduledAt: daysAgo(6),
+    duration: 75,
+    endedAt: daysAgo(6),
+    recordingUrl: '/recordings/m-6',
+  },
+  {
+    id: 'm-7',
+    title: 'Biology — Cell Structure Deep Dive',
+    description: 'Organelles, membranes, and microscopy techniques.',
+    type: 'class',
+    status: 'ended',
+    roomCode: 'bio-cell',
+    hostId: 'u-8',
+    subject: 'Biology',
+    participants: 25,
+    scheduledAt: daysAgo(8),
+    duration: 60,
+    endedAt: daysAgo(8),
+    recordingUrl: '/recordings/m-7',
+  },
+  {
+    id: 'm-8',
+    title: 'SAT Prep — Quantitative Strategies',
+    description: 'Test-taking strategies for the math sections.',
+    type: 'class',
+    status: 'scheduled',
+    roomCode: 'sat-quant',
+    hostId: 'u-1',
+    subject: 'Test Prep',
+    participants: 12,
+    scheduledAt: inHours(26),
+    duration: 90,
+  },
+]
+
+export const mockParticipants: Record<string, Participant[]> = {
+  'm-1': [
+    {
+      id: 'p-self',
+      userId: 'u-1',
+      name: 'Ava Thompson (You)',
+      role: 'teacher',
+      isHost: true,
+      mic: 'on',
+      camera: 'on',
+      screenShare: false,
+      speaking: true,
+      raisedHand: false,
+      connection: 'excellent',
+      joinedAt: minutesAgo(42),
+    },
+    {
+      id: 'p-2',
+      userId: 'u-3',
+      name: 'Sofia Reyes',
+      role: 'student',
+      isHost: false,
+      mic: 'on',
+      camera: 'on',
+      screenShare: false,
+      speaking: false,
+      raisedHand: true,
+      connection: 'good',
+      joinedAt: minutesAgo(41),
+    },
+    {
+      id: 'p-3',
+      userId: 'u-4',
+      name: 'Liam O’Connor',
+      role: 'student',
+      isHost: false,
+      mic: 'on',
+      camera: 'off',
+      screenShare: false,
+      speaking: false,
+      raisedHand: false,
+      connection: 'excellent',
+      joinedAt: minutesAgo(39),
+    },
+    {
+      id: 'p-4',
+      userId: 'u-5',
+      name: 'Priya Sharma',
+      role: 'student',
+      isHost: false,
+      mic: 'off',
+      camera: 'on',
+      screenShare: false,
+      speaking: false,
+      raisedHand: false,
+      connection: 'good',
+      joinedAt: minutesAgo(36),
+    },
+    {
+      id: 'p-5',
+      userId: 'u-6',
+      name: 'Noah Williams',
+      role: 'student',
+      isHost: false,
+      mic: 'off',
+      camera: 'off',
+      screenShare: true,
+      speaking: false,
+      raisedHand: false,
+      connection: 'fair',
+      joinedAt: minutesAgo(30),
+    },
+    {
+      id: 'p-6',
+      userId: 'u-7',
+      name: 'Emma Laurent',
+      role: 'student',
+      isHost: false,
+      mic: 'on',
+      camera: 'on',
+      screenShare: false,
+      speaking: false,
+      raisedHand: false,
+      connection: 'good',
+      joinedAt: minutesAgo(22),
+    },
+    {
+      id: 'p-7',
+      userId: 'u-8',
+      name: 'Ethan Park',
+      role: 'student',
+      isHost: false,
+      mic: 'off',
+      camera: 'off',
+      screenShare: false,
+      speaking: false,
+      raisedHand: false,
+      connection: 'poor',
+      joinedAt: minutesAgo(18),
+    },
+    {
+      id: 'p-8',
+      userId: 'u-10',
+      name: 'Lucas Meyer',
+      role: 'student',
+      isHost: false,
+      mic: 'off',
+      camera: 'on',
+      screenShare: false,
+      speaking: false,
+      raisedHand: false,
+      connection: 'excellent',
+      joinedAt: minutesAgo(9),
+    },
+  ],
+}
+
+export const mockClassStatistics: ClassStatistics = {
+  totalClasses: 128,
+  totalMinutes: 8640,
+  totalStudents: 142,
+  attendanceRate: 92,
+  weeklyAttendance: [
+    { day: 'Mon', rate: 88 },
+    { day: 'Tue', rate: 93 },
+    { day: 'Wed', rate: 91 },
+    { day: 'Thu', rate: 96 },
+    { day: 'Fri', rate: 90 },
+    { day: 'Sat', rate: 84 },
+    { day: 'Sun', rate: 78 },
+  ],
+  weeklyActivity: [
+    { day: 'Mon', classes: 3 },
+    { day: 'Tue', classes: 5 },
+    { day: 'Wed', classes: 4 },
+    { day: 'Thu', classes: 6 },
+    { day: 'Fri', classes: 3 },
+    { day: 'Sat', classes: 2 },
+    { day: 'Sun', classes: 1 },
+  ],
+}
+
+export const mockActivity: ActivityItem[] = [
+  {
+    id: 'a-1',
+    type: 'meeting',
+    message: '“Calculus II — Derivatives Review” started',
+    createdAt: minutesAgo(42),
+  },
+  {
+    id: 'a-2',
+    type: 'participant',
+    message: 'Sofia Reyes raised her hand',
+    createdAt: minutesAgo(15),
+  },
+  {
+    id: 'a-3',
+    type: 'recording',
+    message: '“Chemistry — Periodic Trends” recording is ready',
+    createdAt: hoursAgo(4),
+  },
+  {
+    id: 'a-4',
+    type: 'chat',
+    message: 'Noah Williams sent a message in “Calculus II”',
+    createdAt: hoursAgo(6),
+  },
+  {
+    id: 'a-5',
+    type: 'system',
+    message: 'Your weekly report for Jul 4 – Jul 10 is available',
+    createdAt: daysAgo(1),
+  },
+  {
+    id: 'a-6',
+    type: 'meeting',
+    message: '“1:1 Mentorship — Priya & Ava” ended',
+    createdAt: daysAgo(3),
+  },
+  {
+    id: 'a-7',
+    type: 'participant',
+    message: 'Liam O’Connor joined the class “Physics — Newton’s Laws Lab”',
+    createdAt: daysAgo(3),
+  },
+  {
+    id: 'a-8',
+    type: 'recording',
+    message: '“Data Science — Intro to Pandas” recording is ready',
+    createdAt: daysAgo(5),
+  },
+]
+
+export function getMeetingById(id: string): Meeting | undefined {
+  return mockMeetings.find((m) => m.id === id)
+}
+
+export function getMeetingByRoomCode(code: string): Meeting | undefined {
+  return mockMeetings.find((m) => m.roomCode.toLowerCase() === code.toLowerCase())
+}
+
+export function getHostName(meeting: Meeting): string {
+  return mockUsers.find((u) => u.id === meeting.hostId)?.name ?? 'Instructor'
+}
+
+export function isHostCurrentUser(meeting: Meeting): boolean {
+  return meeting.hostId === currentUser.id
+}

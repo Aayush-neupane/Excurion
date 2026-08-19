@@ -1,0 +1,354 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------ */
+/* Excurion — Design Tokens                                              */
+/*                                                                     */
+/* Single source of truth for the design system. Everything below is   */
+/* consumed by Tailwind's core (colors, radii, shadows, fonts,         */
+/* breakpoints, easing) or used directly by components.                */
+/* ------------------------------------------------------------------ */
+
+:root {
+  /* --- Surfaces ---------------------------------------------------- */
+  --background: oklch(0.15 0.005 250);
+  --foreground: oklch(0.93 0.004 250);
+  --card: oklch(0.175 0.005 250);
+  --card-foreground: oklch(0.93 0.004 250);
+  --popover: oklch(0.195 0.005 250);
+  --popover-foreground: oklch(0.93 0.004 250);
+
+  /* --- Brand (muted, professional blue) ----------------------------- */
+  --primary: oklch(0.6 0.125 250);
+  --primary-foreground: oklch(0.985 0.005 250);
+  --primary-hover: oklch(0.65 0.12 250);
+  --secondary: oklch(0.225 0.006 250);
+  --secondary-foreground: oklch(0.9 0.004 250);
+  --muted: oklch(0.21 0.005 250);
+  --muted-foreground: oklch(0.68 0.01 250);
+  --accent: oklch(0.245 0.008 250);
+  --accent-foreground: oklch(0.93 0.004 250);
+
+  /* --- Status (muted) ---------------------------------------------- */
+  --destructive: oklch(0.63 0.135 25);
+  --destructive-foreground: oklch(0.975 0.01 25);
+  --success: oklch(0.7 0.1 152);
+  --success-foreground: oklch(0.16 0.02 152);
+  --warning: oklch(0.78 0.1 78);
+  --warning-foreground: oklch(0.18 0.02 78);
+
+  /* --- Lines -------------------------------------------------------- */
+  --border: oklch(0.28 0.006 250);
+  --input: oklch(0.25 0.006 250);
+  --ring: oklch(0.6 0.125 250);
+
+  /* --- Radii -------------------------------------------------------- */
+  --radius: 0.625rem;
+  --radius-xs: 0.3125rem;
+  --radius-sm: calc(var(--radius) - 0.125rem);
+  --radius-md: calc(var(--radius) - 0.0625rem);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 0.25rem);
+  --radius-2xl: calc(var(--radius) + 0.5rem);
+
+  /* --- Elevation (subtle, enterprise) ------------------------------- */
+  --shadow-xs: 0 1px 2px color-mix(in oklch, oklch(0 0 0) 24%, transparent);
+  --shadow-sm: 0 1px 2px color-mix(in oklch, oklch(0 0 0) 22%, transparent),
+    0 1px 3px color-mix(in oklch, oklch(0 0 0) 12%, transparent);
+  --shadow-md: 0 2px 4px color-mix(in oklch, oklch(0 0 0) 20%, transparent),
+    0 4px 12px color-mix(in oklch, oklch(0 0 0) 18%, transparent);
+  --shadow-lg: 0 4px 8px color-mix(in oklch, oklch(0 0 0) 24%, transparent),
+    0 12px 32px color-mix(in oklch, oklch(0 0 0) 30%, transparent);
+  --shadow-overlay: 0 4px 8px color-mix(in oklch, oklch(0 0 0) 28%, transparent),
+    0 16px 48px color-mix(in oklch, oklch(0 0 0) 40%, transparent);
+
+  /* --- Typography --------------------------------------------------- */
+  --font-sans: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', monospace;
+
+  /* Type scale (Tailwind maps --text-* utilities to these) */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.6rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.375rem;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.75rem;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.1;
+
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* --- Motion ------------------------------------------------------- */
+  --ease-default: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-1: 100ms;
+  --duration-2: 160ms;
+  --duration-3: 240ms;
+  --duration-4: 360ms;
+
+  /* --- Layout ------------------------------------------------------- */
+  --spacing-base: 0.25rem;
+  --header-height: 3.75rem;
+  --sidebar-width: 15.5rem;
+
+  /* --- Z-index scale ------------------------------------------------ */
+  --z-header: 40;
+  --z-overlay: 50;
+  --z-modal: 60;
+  --z-tooltip: 70;
+  --z-toast: 80;
+
+  /* --- Chart accents (muted) ---------------------------------------- */
+  --chart-1: oklch(0.6 0.125 250);
+  --chart-2: oklch(0.62 0.1 215);
+  --chart-3: oklch(0.7 0.1 152);
+  --chart-4: oklch(0.75 0.1 78);
+  --chart-5: oklch(0.55 0.08 300);
+}
+
+/* Light theme */
+.light {
+  --background: oklch(0.977 0.002 250);
+  --foreground: oklch(0.24 0.008 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.008 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.008 250);
+
+  --primary: oklch(0.5 0.13 250);
+  --primary-foreground: oklch(0.99 0.005 250);
+  --primary-hover: oklch(0.45 0.12 250);
+  --secondary: oklch(0.95 0.003 250);
+  --secondary-foreground: oklch(0.33 0.01 250);
+  --muted: oklch(0.955 0.002 250);
+  --muted-foreground: oklch(0.52 0.008 250);
+  --accent: oklch(0.945 0.003 250);
+  --accent-foreground: oklch(0.33 0.01 250);
+
+  --destructive: oklch(0.56 0.14 25);
+  --destructive-foreground: oklch(0.98 0.01 25);
+  --success: oklch(0.52 0.11 152);
+  --success-foreground: oklch(0.98 0.01 152);
+  --warning: oklch(0.6 0.11 78);
+  --warning-foreground: oklch(0.98 0.01 78);
+
+  --border: oklch(0.905 0.003 250);
+  --input: oklch(0.885 0.004 250);
+  --ring: oklch(0.5 0.13 250);
+
+  --shadow-xs: 0 1px 2px color-mix(in oklch, oklch(0 0 0) 6%, transparent);
+  --shadow-sm: 0 1px 2px color-mix(in oklch, oklch(0 0 0) 4%, transparent),
+    0 1px 3px color-mix(in oklch, oklch(0 0 0) 3%, transparent);
+  --shadow-md: 0 1px 2px color-mix(in oklch, oklch(0 0 0) 3%, transparent),
+    0 2px 8px color-mix(in oklch, oklch(0 0 0) 6%, transparent);
+  --shadow-lg: 0 2px 4px color-mix(in oklch, oklch(0 0 0) 4%, transparent),
+    0 8px 24px color-mix(in oklch, oklch(0 0 0) 10%, transparent);
+  --shadow-overlay: 0 4px 8px color-mix(in oklch, oklch(0 0 0) 8%, transparent),
+    0 16px 48px color-mix(in oklch, oklch(0 0 0) 16%, transparent);
+}
+
+/* ------------------------------------------------------------------ */
+/* Tailwind theme mapping — utilities consume these tokens             */
+/* ------------------------------------------------------------------ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-soft: var(--shadow-sm);
+  --shadow-overlay: var(--shadow-overlay);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-weight-normal: var(--font-weight-normal);
+  --font-weight-medium: var(--font-weight-medium);
+  --font-weight-semibold: var(--font-weight-semibold);
+  --font-weight-bold: var(--font-weight-bold);
+
+  --text-2xs: var(--text-2xs);
+  --text-2xs--line-height: var(--text-2xs--line-height);
+  --text-xs: var(--text-xs);
+  --text-xs--line-height: var(--text-xs--line-height);
+  --text-sm: var(--text-sm);
+  --text-sm--line-height: var(--text-sm--line-height);
+  --text-base: var(--text-base);
+  --text-base--line-height: var(--text-base--line-height);
+  --text-lg: var(--text-lg);
+  --text-lg--line-height: var(--text-lg--line-height);
+  --text-xl: var(--text-xl);
+  --text-xl--line-height: var(--text-xl--line-height);
+  --text-2xl: var(--text-2xl);
+  --text-2xl--line-height: var(--text-2xl--line-height);
+  --text-3xl: var(--text-3xl);
+  --text-3xl--line-height: var(--text-3xl--line-height);
+  --text-4xl: var(--text-4xl);
+  --text-4xl--line-height: var(--text-4xl--line-height);
+  --text-5xl: var(--text-5xl);
+  --text-5xl--line-height: var(--text-5xl--line-height);
+
+  --ease-default: var(--ease-default);
+  --ease-in: var(--ease-in);
+  --ease-out: var(--ease-out);
+  --ease-in-out: var(--ease-in-out);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                               */
+/* ------------------------------------------------------------------ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 30%, transparent);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--muted-foreground) 20%, transparent);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
+    background-clip: content-box;
+    border: 2px solid transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared utilities                                                   */
+/* ------------------------------------------------------------------ */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Subtle keyboard focus ring for arbitrary elements */
+  .focus-ring {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Consistent interactive surface on hover */
+  .hover-surface {
+    transition:
+      background-color var(--duration-2) var(--ease-default),
+      border-color var(--duration-2) var(--ease-default);
+  }
+  .hover-surface:hover {
+    background-color: var(--accent);
+  }
+}
+
+/* Framer Motion helpers (shared durations live with the tokens above) */
+:root {
+  --motion-fast: 0.16s;
+  --motion-normal: 0.24s;
+  --motion-slow: 0.36s;
+}

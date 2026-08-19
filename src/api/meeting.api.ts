@@ -1,0 +1,152 @@
+import type {
+  ClassStatistics,
+  CreateMeetingInput,
+  CreateRoomResult,
+  JoinMeetingInput,
+  JoinRoomResult,
+  Meeting,
+  Participant,
+} from '@/types/meeting'
+import {
+  getHostName,
+  getMeetingByRoomCode,
+  getMeetingById,
+  mockClassStatistics,
+  mockMeetings,
+  mockParticipants,
+} from '@/data/meetings'
+import { mockError, mockResult, randomId, randomRoomCode } from './client'
+
+export interface MeetingApi {
+  listMeetings(): Promise<Meeting[]>
+  getMeeting(id: string): Promise<Meeting>
+  findMeetingByCode(roomCode: string): Promise<Meeting | null>
+  getUpcoming(): Promise<Meeting[]>
+  getRecent(): Promise<Meeting[]>
+  getStatistics(): Promise<ClassStatistics>
+  getHostName(meetingId: string): Promise<string>
+  createRoom(input: CreateMeetingInput): Promise<CreateRoomResult>
+  joinRoom(input: JoinMeetingInput): Promise<JoinRoomResult>
+  getParticipants(meetingId: string): Promise<Participant[]>
+  leaveRoom(meetingId: string): Promise<void>
+  endRoom(meetingId: string): Promise<void>
+}
+
+export const mockMeetingApi: MeetingApi = {
+  async listMeetings() {
+    return mockResult(mockMeetings)
+  },
+
+  async getMeeting(id) {
+    const meeting = getMeetingById(id)
+    if (!meeting) return mockError('Meeting not found.')
+    return mockResult(meeting)
+  },
+
+  async findMeetingByCode(roomCode) {
+    const meeting = getMeetingByRoomCode(roomCode)
+    return mockResult(meeting ?? null)
+  },
+
+  async getUpcoming() {
+    return mockResult(
+      mockMeetings
+        .filter((m) => m.status === 'scheduled' && m.scheduledAt)
+        .sort((a, b) => new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime()),
+    )
+  },
+
+  async getRecent() {
+    return mockResult(
+      mockMeetings
+        .filter((m) => m.status === 'ended')
+        .sort((a, b) => new Date(b.endedAt ?? 0).getTime() - new Date(a.endedAt ?? 0).getTime())
+        .slice(0, 4),
+    )
+  },
+
+  async getStatistics() {
+    return mockResult(mockClassStatistics)
+  },
+
+  async getHostName(meetingId) {
+    const meeting = getMeetingById(meetingId)
+    return mockResult(meeting ? getHostName(meeting) : 'Instructor')
+  },
+
+  async createRoom(input) {
+    if (!input.title.trim()) return mockError('Please give your room a title.')
+    const meeting: Meeting = {
+      id: randomId('m'),
+      title: input.title.trim(),
+      description: input.description?.trim(),
+      type: input.type,
+      status: 'live',
+      roomCode: randomRoomCode(),
+      hostId: 'u-1',
+      subject: input.subject,
+      scheduledAt: input.scheduledAt,
+      duration: input.duration,
+      participants: 1,
+      startedAt: new Date().toISOString(),
+    }
+    const participants: Participant[] = [
+      {
+        id: 'p-self',
+        userId: 'u-1',
+        name: 'Ava Thompson (You)',
+        role: 'teacher',
+        isHost: true,
+        mic: 'on',
+        camera: 'on',
+        screenShare: false,
+        speaking: false,
+        raisedHand: false,
+        connection: 'excellent',
+        joinedAt: new Date().toISOString(),
+      },
+    ]
+    return mockResult(
+      {
+        meeting,
+        token: `rtc.${randomId('token')}`,
+        participants,
+        inviteUrl: `${window.location.origin}/join?code=${meeting.roomCode}`,
+      },
+      1100,
+    )
+  },
+
+  async joinRoom({ roomCode }) {
+    const normalized = roomCode.trim().toLowerCase()
+    const meeting = getMeetingByRoomCode(normalized)
+    if (!meeting) {
+      return mockError('We couldn’t find a meeting with that code.')
+    }
+    return mockResult({
+      meeting,
+      token: `rtc.${randomId('token')}`,
+      participants: mockParticipants[meeting.id] ?? [],
+    })
+  },
+
+  async getParticipants(meetingId) {
+    return mockResult(mockParticipants[meetingId] ?? [])
+  },
+
+  async leaveRoom() {
+    return mockResult(undefined, 400)
+  },
+
+  async endRoom() {
+    return mockResult(undefined, 400)
+  },
+}
+
+export const meetingApi: MeetingApi = mockMeetingApi
+
+/** Convenience for UI copy: display the host name for a meeting. */
+export function meetingHostName(id: string): string {
+  const meeting = getMeetingById(id)
+  return meeting ? getHostName(meeting) : 'Instructor'
+}
