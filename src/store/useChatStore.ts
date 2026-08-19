@@ -55,7 +55,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const now = Date.now()
     const simulated: TypingState = {
       userId: 'u-3',
-      userName: 'Sofia Reyes',
+      userName: 'Peter Parker',
       until: now + 3500,
     }
     set((s) => ({

@@ -88,9 +88,9 @@ function createMockSyncAdapter(): WhiteboardSyncAdapter {
   let presenceCb: ((collaborators: WhiteboardCollaborator[]) => void) | undefined
 
   const initialCollaborators: WhiteboardCollaborator[] = [
-    { userId: 'u-1', name: 'Ava Thompson (You)', state: 'editing' },
-    { userId: 'u-3', name: 'Sofia Reyes', state: 'viewing' },
-    { userId: 'u-4', name: 'Liam O’Connor', state: 'viewing' },
+    { userId: 'u-1', name: 'Tony Stark (You)', state: 'editing' },
+    { userId: 'u-3', name: 'Peter Parker', state: 'viewing' },
+    { userId: 'u-4', name: 'Bruce Banner', state: 'viewing' },
   ]
 
   return {
@@ -134,7 +134,7 @@ function createMockSyncAdapter(): WhiteboardSyncAdapter {
     updatePresence(state) {
       const others = initialCollaborators.filter((c) => c.userId !== 'u-1')
       presenceCb?.([
-        { userId: 'u-1', name: 'Ava Thompson (You)', state },
+        { userId: 'u-1', name: 'Tony Stark (You)', state },
         ...others,
       ])
     },

@@ -13,22 +13,22 @@
 
 :root {
   /* --- Surfaces ---------------------------------------------------- */
-  --background: oklch(0.15 0.005 250);
+  --background: oklch(0.24 0.005 250);
   --foreground: oklch(0.93 0.004 250);
-  --card: oklch(0.175 0.005 250);
+  --card: oklch(0.26 0.005 250);
   --card-foreground: oklch(0.93 0.004 250);
-  --popover: oklch(0.195 0.005 250);
+  --popover: oklch(0.28 0.005 250);
   --popover-foreground: oklch(0.93 0.004 250);
 
   /* --- Brand (muted, professional blue) ----------------------------- */
   --primary: oklch(0.6 0.125 250);
   --primary-foreground: oklch(0.985 0.005 250);
   --primary-hover: oklch(0.65 0.12 250);
-  --secondary: oklch(0.225 0.006 250);
+  --secondary: oklch(0.31 0.006 250);
   --secondary-foreground: oklch(0.9 0.004 250);
-  --muted: oklch(0.21 0.005 250);
-  --muted-foreground: oklch(0.68 0.01 250);
-  --accent: oklch(0.245 0.008 250);
+  --muted: oklch(0.29 0.005 250);
+  --muted-foreground: oklch(0.67 0.01 250);
+  --accent: oklch(0.32 0.008 250);
   --accent-foreground: oklch(0.93 0.004 250);
 
   /* --- Status (muted) ---------------------------------------------- */
@@ -129,7 +129,7 @@
 
 /* Light theme */
 .light {
-  --background: oklch(0.977 0.002 250);
+  --background: oklch(0.95 0.002 250);
   --foreground: oklch(0.24 0.008 250);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.24 0.008 250);

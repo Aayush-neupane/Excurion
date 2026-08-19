@@ -4,19 +4,19 @@ import { UserAvatar } from '@/components/common/UserAvatar'
 
 const TESTIMONIALS = [
   {
-    name: 'Dr. Elena Vasquez',
+    name: 'Dr. Jane Foster',
     role: 'Mathematics Professor · State University',
     quote:
       'The whiteboard alone is worth it. My students annotate together and actually ask more questions than they do in person.',
   },
   {
-    name: 'Marcus Chen',
+    name: 'Stephen Strange',
     role: 'Physics Teacher · Westbrook High',
     quote:
       'We migrated 300+ students in a week. The layout adapts so well that lab demos feel like being in the room.',
   },
   {
-    name: 'Fatima Al-Sayed',
+    name: 'Monica Rambeau',
     role: 'K-12 Coordinator · LearnSphere Network',
     quote:
       'Excurion is the first virtual classroom that feels premium. Kids engage, no one talks over anyone, and recordings are ready instantly.',

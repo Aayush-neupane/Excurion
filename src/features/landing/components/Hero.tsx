@@ -16,10 +16,10 @@ const fadeUp = {
 }
 
 const TILE_TONES: Record<string, string> = {
-  'Ava Thompson': 'bg-blue-500/25',
-  'Sofia Reyes': 'bg-violet-500/25',
-  "Liam O'Connor": 'bg-cyan-600/25',
-  'Noah Williams': 'bg-emerald-600/25',
+  'Tony Stark': 'bg-blue-500/25',
+  'Peter Parker': 'bg-violet-500/25',
+  'Bruce Banner': 'bg-cyan-600/25',
+  'Wanda Maximoff': 'bg-emerald-600/25',
 }
 
 function MeetingWindow() {
@@ -45,10 +45,10 @@ function MeetingWindow() {
 
         {/* Video grid */}
         <div className="grid grid-cols-2 gap-2.5 p-2.5">
-          <Tile name="Ava Thompson" role="Host" mic speaking />
-          <Tile name="Sofia Reyes" role="Student" mic />
-          <Tile name="Liam O'Connor" role="Student" mic={false} />
-          <Tile name="Noah Williams" role="Student" mic={false} camera={false} />
+          <Tile name="Tony Stark" role="Host" mic speaking />
+          <Tile name="Peter Parker" role="Student" mic />
+          <Tile name="Bruce Banner" role="Student" mic={false} />
+          <Tile name="Wanda Maximoff" role="Student" mic={false} camera={false} />
         </div>
 
         {/* Toolbar */}
@@ -72,14 +72,14 @@ function MeetingWindow() {
         className="absolute -right-4 top-14 hidden w-56 rounded-lg border border-border bg-card p-3 shadow-lg sm:block lg:-right-8"
       >
         <div className="flex items-start gap-2">
-          <Avatar name="Sofia Reyes" className="h-6 w-6" />
+          <Avatar name="Peter Parker" className="h-6 w-6" />
           <p className="text-xs leading-snug text-muted-foreground">
-            <span className="font-medium text-foreground">Sofia:</span> could we go over problem 3?
+            <span className="font-medium text-foreground">Peter:</span> could we go over problem 3?
           </p>
         </div>
         <div className="mt-2.5 flex items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-[11px] text-muted-foreground">
           <span className="typing-dot" /> <span className="typing-dot" /> <span className="typing-dot" />
-          <span className="ml-1">Sofia is typing…</span>
+          <span className="ml-1">Peter is typing…</span>
         </div>
       </motion.div>
 

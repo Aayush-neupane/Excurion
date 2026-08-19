@@ -94,7 +94,7 @@ export const mockMeetingApi: MeetingApi = {
       {
         id: 'p-self',
         userId: 'u-1',
-        name: 'Ava Thompson (You)',
+        name: 'Tony Stark (You)',
         role: 'teacher',
         isHost: true,
         mic: 'on',
@@ -152,7 +152,7 @@ const FALLBACK_PARTICIPANTS: Participant[] = [
   {
     id: 'p-self',
     userId: 'u-1',
-    name: 'Ava Thompson (You)',
+    name: 'Tony Stark (You)',
     role: 'teacher',
     isHost: true,
     mic: 'on',
@@ -166,7 +166,7 @@ const FALLBACK_PARTICIPANTS: Participant[] = [
   {
     id: 'p-2',
     userId: 'u-2',
-    name: 'Sofia Reyes',
+    name: 'Stephen Strange',
     role: 'student',
     isHost: false,
     mic: 'on',
@@ -180,7 +180,7 @@ const FALLBACK_PARTICIPANTS: Participant[] = [
   {
     id: 'p-3',
     userId: 'u-3',
-    name: "Liam O'Connor",
+    name: 'Peter Parker',
     role: 'student',
     isHost: false,
     mic: 'on',
@@ -194,7 +194,7 @@ const FALLBACK_PARTICIPANTS: Participant[] = [
   {
     id: 'p-4',
     userId: 'u-4',
-    name: 'Noah Williams',
+    name: 'Bruce Banner',
     role: 'student',
     isHost: false,
     mic: 'off',

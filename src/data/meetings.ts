@@ -65,7 +65,7 @@ export const mockMeetings: Meeting[] = [
   },
   {
     id: 'm-5',
-    title: '1:1 Mentorship — Priya & Ava',
+    title: '1:1 Mentorship — Natasha & Tony',
     description: 'Private session to review exam strategy.',
     type: '1on1',
     status: 'ended',
@@ -128,7 +128,7 @@ export const mockParticipants: Record<string, Participant[]> = {
     {
       id: 'p-self',
       userId: 'u-1',
-      name: 'Ava Thompson (You)',
+      name: 'Tony Stark (You)',
       role: 'teacher',
       isHost: true,
       mic: 'on',
@@ -142,7 +142,7 @@ export const mockParticipants: Record<string, Participant[]> = {
     {
       id: 'p-2',
       userId: 'u-3',
-      name: 'Sofia Reyes',
+      name: 'Peter Parker',
       role: 'student',
       isHost: false,
       mic: 'on',
@@ -156,7 +156,7 @@ export const mockParticipants: Record<string, Participant[]> = {
     {
       id: 'p-3',
       userId: 'u-4',
-      name: 'Liam O’Connor',
+      name: 'Bruce Banner',
       role: 'student',
       isHost: false,
       mic: 'on',
@@ -170,7 +170,7 @@ export const mockParticipants: Record<string, Participant[]> = {
     {
       id: 'p-4',
       userId: 'u-5',
-      name: 'Priya Sharma',
+      name: 'Natasha Romanoff',
       role: 'student',
       isHost: false,
       mic: 'off',
@@ -184,7 +184,7 @@ export const mockParticipants: Record<string, Participant[]> = {
     {
       id: 'p-5',
       userId: 'u-6',
-      name: 'Noah Williams',
+      name: 'Wanda Maximoff',
       role: 'student',
       isHost: false,
       mic: 'off',
@@ -198,7 +198,7 @@ export const mockParticipants: Record<string, Participant[]> = {
     {
       id: 'p-6',
       userId: 'u-7',
-      name: 'Emma Laurent',
+      name: 'Carol Danvers',
       role: 'student',
       isHost: false,
       mic: 'on',
@@ -212,7 +212,7 @@ export const mockParticipants: Record<string, Participant[]> = {
     {
       id: 'p-7',
       userId: 'u-8',
-      name: 'Ethan Park',
+      name: 'Steve Rogers',
       role: 'student',
       isHost: false,
       mic: 'off',
@@ -226,7 +226,7 @@ export const mockParticipants: Record<string, Participant[]> = {
     {
       id: 'p-8',
       userId: 'u-10',
-      name: 'Lucas Meyer',
+      name: 'Clint Barton',
       role: 'student',
       isHost: false,
       mic: 'off',
@@ -275,7 +275,7 @@ export const mockActivity: ActivityItem[] = [
   {
     id: 'a-2',
     type: 'participant',
-    message: 'Sofia Reyes raised her hand',
+    message: 'Peter Parker raised his hand',
     createdAt: minutesAgo(15),
   },
   {
@@ -287,7 +287,7 @@ export const mockActivity: ActivityItem[] = [
   {
     id: 'a-4',
     type: 'chat',
-    message: 'Noah Williams sent a message in “Calculus II”',
+    message: 'Wanda Maximoff sent a message in “Calculus II”',
     createdAt: hoursAgo(6),
   },
   {
@@ -299,13 +299,13 @@ export const mockActivity: ActivityItem[] = [
   {
     id: 'a-6',
     type: 'meeting',
-    message: '“1:1 Mentorship — Priya & Ava” ended',
+    message: '“1:1 Mentorship — Natasha & Tony” ended',
     createdAt: daysAgo(3),
   },
   {
     id: 'a-7',
     type: 'participant',
-    message: 'Liam O’Connor joined the class “Physics — Newton’s Laws Lab”',
+    message: 'Bruce Banner joined the class “Physics — Newton’s Laws Lab”',
     createdAt: daysAgo(3),
   },
   {

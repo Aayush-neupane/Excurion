@@ -55,7 +55,7 @@ npm run storybook      # component library → http://localhost:6006
 
 | Role | Email | Password |
 | --- | --- | --- |
-| Instructor | `ava@excurion.app` | `password123` |
+| Instructor | `tony@excurion.app` | `password123` |
 
 ## Design system
 

@@ -23,7 +23,7 @@ export const mockChatApi: ChatApi = {
       id: randomId('c'),
       meetingId,
       authorId: 'u-1',
-      authorName: 'Ava Thompson (You)',
+      authorName: 'Tony Stark (You)',
       content: content.trim(),
       attachment: attachment ? { ...attachment, id: randomId('at') } : undefined,
       createdAt: new Date().toISOString(),
