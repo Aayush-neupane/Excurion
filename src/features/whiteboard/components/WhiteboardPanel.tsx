@@ -6,6 +6,7 @@ import {
   loadSnapshot,
   type TLEditorSnapshot,
   type TLStore,
+  type TLUiOverrides,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { motion } from 'framer-motion'
@@ -38,6 +39,40 @@ function getRoomStore(roomId: string): TLStore {
     storesByRoom.set(roomId, store)
   }
   return store
+}
+
+/**
+ * Stable references (module scope). Inline objects would get a new identity
+ * on every parent re-render, and tldraw re-arms its whole toolbar/UI when
+ * `overrides`/`components` change identity — making the tools flicker and
+ * disappear even when nothing was drawn.
+ */
+const OVERRIDES: TLUiOverrides = {
+  // Classroom keyboards stay free: strip every shortcut from the
+  // UI actions and tools (tool switching, undo/redo, delete…).
+  actions: (_editor, actions) => {
+    for (const action of Object.values(actions)) action.kbd = undefined
+    return actions
+  },
+  tools: (_editor, tools) => {
+    for (const tool of Object.values(tools)) tool.kbd = undefined
+    return tools
+  },
+}
+
+const COMPONENTS = {
+  // Keep the canvas calm: hide the chrome that belongs to a
+  // single-player app (menu drawer, page panel, debug). The
+  // quick actions, contextual style panel and zoom controls
+  // stay — they carry the workflow the whiteboard needs.
+  MenuPanel: null,
+  PageMenu: null,
+  TopPanel: null,
+  DebugPanel: null,
+  DebugMenu: null,
+  SharePanel: null,
+  PeopleMenu: null,
+  HelpMenu: null,
 }
 
 const SYNC_STATUS_META: Record<SyncStatus, { label: string; icon: typeof CloudUpload; className: string }> = {
@@ -178,32 +213,8 @@ export function WhiteboardPanel() {
         store={store}
         colorScheme="dark"
         className="h-full w-full"
-        overrides={{
-          // Classroom keyboards stay free: strip every shortcut from the
-          // UI actions and tools (tool switching, undo/redo, delete…).
-          actions: (_editor, actions) => {
-            for (const action of Object.values(actions)) action.kbd = undefined
-            return actions
-          },
-          tools: (_editor, tools) => {
-            for (const tool of Object.values(tools)) tool.kbd = undefined
-            return tools
-          },
-        }}
-        components={{
-          // Keep the canvas calm: hide the chrome that belongs to a
-          // single-player app (menu drawer, page panel, debug). The
-          // quick actions, contextual style panel and zoom controls
-          // stay — they carry the workflow the whiteboard needs.
-          MenuPanel: null,
-          PageMenu: null,
-          TopPanel: null,
-          DebugPanel: null,
-          DebugMenu: null,
-          SharePanel: null,
-          PeopleMenu: null,
-          HelpMenu: null,
-        }}
+        overrides={OVERRIDES}
+        components={COMPONENTS}
       />
 
       {/* Sync status + presence overlay */}
