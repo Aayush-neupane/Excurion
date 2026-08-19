@@ -48,15 +48,15 @@ function UpcomingRow({ meeting }: { meeting: Meeting }) {
           {minutes}m left
         </p>
       </div>
-      <Badge variant="secondary" className="hidden sm:inline-flex">
-        {TYPE_LABELS[meeting.type]}
-      </Badge>
-      <Button size="sm" variant="outline" asChild className="shrink-0">
-        <Link to={`/meeting/${meeting.id}`}>
-          <Video className="h-3.5 w-3.5" />
-          Join
-        </Link>
-      </Button>
+      <div className="flex shrink-0 flex-col items-end gap-1.5">
+        <Badge variant="secondary">{TYPE_LABELS[meeting.type]}</Badge>
+        <Button size="sm" variant="outline" asChild>
+          <Link to={`/meeting/${meeting.id}`}>
+            <Video className="h-3.5 w-3.5" />
+            Join
+          </Link>
+        </Button>
+      </div>
     </motion.div>
   )
 }

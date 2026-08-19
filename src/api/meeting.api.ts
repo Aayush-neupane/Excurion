@@ -131,7 +131,7 @@ export const mockMeetingApi: MeetingApi = {
   },
 
   async getParticipants(meetingId) {
-    return mockResult(mockParticipants[meetingId] ?? [])
+    return mockResult(mockParticipants[meetingId] ?? FALLBACK_PARTICIPANTS)
   },
 
   async leaveRoom() {
@@ -144,6 +144,68 @@ export const mockMeetingApi: MeetingApi = {
 }
 
 export const meetingApi: MeetingApi = mockMeetingApi
+
+const nowIso = () => new Date().toISOString()
+
+/** Rooms without a hand-picked roster still get a plausible class. */
+const FALLBACK_PARTICIPANTS: Participant[] = [
+  {
+    id: 'p-self',
+    userId: 'u-1',
+    name: 'Ava Thompson (You)',
+    role: 'teacher',
+    isHost: true,
+    mic: 'on',
+    camera: 'on',
+    screenShare: false,
+    speaking: false,
+    raisedHand: false,
+    connection: 'excellent',
+    joinedAt: nowIso(),
+  },
+  {
+    id: 'p-2',
+    userId: 'u-2',
+    name: 'Sofia Reyes',
+    role: 'student',
+    isHost: false,
+    mic: 'on',
+    camera: 'on',
+    screenShare: false,
+    speaking: false,
+    raisedHand: false,
+    connection: 'good',
+    joinedAt: nowIso(),
+  },
+  {
+    id: 'p-3',
+    userId: 'u-3',
+    name: "Liam O'Connor",
+    role: 'student',
+    isHost: false,
+    mic: 'on',
+    camera: 'off',
+    screenShare: false,
+    speaking: false,
+    raisedHand: false,
+    connection: 'good',
+    joinedAt: nowIso(),
+  },
+  {
+    id: 'p-4',
+    userId: 'u-4',
+    name: 'Noah Williams',
+    role: 'student',
+    isHost: false,
+    mic: 'off',
+    camera: 'on',
+    screenShare: false,
+    speaking: false,
+    raisedHand: false,
+    connection: 'fair',
+    joinedAt: nowIso(),
+  },
+]
 
 /** Convenience for UI copy: display the host name for a meeting. */
 export function meetingHostName(id: string): string {

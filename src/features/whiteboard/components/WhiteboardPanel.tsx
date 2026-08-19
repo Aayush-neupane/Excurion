@@ -155,6 +155,18 @@ export function WhiteboardPanel() {
         store={store}
         colorScheme="dark"
         className="h-full w-full"
+        overrides={{
+          // Classroom keyboards stay free: strip every shortcut from the
+          // UI actions and tools (tool switching, undo/redo, delete…).
+          actions: (_editor, actions) => {
+            for (const action of Object.values(actions)) action.kbd = undefined
+            return actions
+          },
+          tools: (_editor, tools) => {
+            for (const tool of Object.values(tools)) tool.kbd = undefined
+            return tools
+          },
+        }}
         components={{
           // Keep the canvas calm: hide the chrome that belongs to a
           // single-player app (menu drawer, page panel, debug). The

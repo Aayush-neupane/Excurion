@@ -27,7 +27,8 @@ export default function MeetingRoomPage() {
 
   useEffect(() => {
     if (!meetingId) return
-    if (useMeetingStore.getState().isInMeeting) {
+    const current = useMeetingStore.getState()
+    if (current.isInMeeting && current.meeting?.id === meetingId) {
       void useChatStore.getState().load(meetingId)
       return
     }
@@ -76,23 +77,35 @@ export default function MeetingRoomPage() {
           {whiteboardOpen ? <WhiteboardPanel /> : <VideoGrid />}
         </div>
 
-        {/* Collapsible right panel: chat / participants */}
+        {/* Collapsible right panel: chat / participants.
+            On mobile it overlays the stage; on sm+ it docks in-flow. */}
         <AnimatePresence initial={false}>
           {sidebar && (
-            <motion.aside
-              key={sidebar}
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 'auto', opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-20 h-full shrink-0 overflow-hidden border-l border-border bg-card"
-              aria-label={sidebar === 'chat' ? 'Meeting chat' : 'Participants'}
-            >
-              <div className="h-full w-[min(88vw,24rem)] sm:w-80 lg:w-96">
-                {sidebar === 'chat' && <ChatPanel meetingId={meetingId} />}
-                {sidebar === 'participants' && <ParticipantsPanel />}
-              </div>
-            </motion.aside>
+            <>
+              <motion.div
+                key={`${sidebar}-scrim`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 z-10 bg-black/40 sm:hidden"
+                onClick={() => useMeetingStore.getState().setSidebar(null)}
+              />
+              <motion.aside
+                key={sidebar}
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-y-0 right-0 z-20 h-full w-full max-w-sm shrink-0 overflow-hidden border-l border-border bg-card shadow-xl sm:relative sm:w-80 sm:shadow-none lg:w-96"
+                aria-label={sidebar === 'chat' ? 'Meeting chat' : 'Participants'}
+              >
+                <div className="h-full w-full">
+                  {sidebar === 'chat' && <ChatPanel meetingId={meetingId} />}
+                  {sidebar === 'participants' && <ParticipantsPanel />}
+                </div>
+              </motion.aside>
+            </>
           )}
         </AnimatePresence>
       </div>

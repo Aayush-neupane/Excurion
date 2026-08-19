@@ -77,7 +77,7 @@ function StatsGrid() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
@@ -87,14 +87,14 @@ function StatsGrid() {
 
   if (isError || !data) {
     return (
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => <StatCard key={i} label="—" value="—" icon={Video} />)}
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 lg:grid-cols-4">
       <StatCard
         label="Classes taught"
         value={String(data.totalClasses)}
@@ -137,7 +137,7 @@ export default function DashboardPage() {
 
       <StatsGrid />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <AttendanceChart />
           <RecentClasses />

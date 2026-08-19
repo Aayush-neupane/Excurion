@@ -91,7 +91,7 @@ function SidebarNav() {
         )}
       </AnimatePresence>
 
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card lg:flex" aria-label="Primary navigation">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-card lg:flex" aria-label="Primary navigation">
         <SidebarContent user={user} onLogout={logout} onUserMenuChange={setOpen} userMenuOpen={open} />
       </aside>
     </>

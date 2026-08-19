@@ -49,7 +49,7 @@ function ControlButton({
           aria-pressed={active}
           disabled={disabled}
           className={cn(
-            'group relative flex h-10 w-10 items-center justify-center rounded-md text-secondary-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+            'group relative flex h-9 w-9 items-center justify-center rounded-md text-secondary-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 sm:h-10 sm:w-10',
             className,
           )}
         >
@@ -95,9 +95,9 @@ export function MeetingToolbar() {
       initial={{ y: 32, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="relative z-30 flex h-16 shrink-0 items-center justify-center gap-1 border-t border-border bg-card px-3 sm:gap-1.5"
+      className="relative z-30 flex h-14 shrink-0 items-center justify-center gap-1 border-t border-border bg-card px-2 sm:h-16 sm:gap-1.5 sm:px-3"
     >
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <ControlButton
           label={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
           shortcut="⌘D"
@@ -168,7 +168,7 @@ export function MeetingToolbar() {
 
       <div className="mx-1 hidden h-6 w-px bg-border sm:block" aria-hidden />
 
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <ControlButton
           label={handRaised ? 'Lower hand' : 'Raise hand'}
           shortcut="⌘H"
@@ -195,7 +195,7 @@ export function MeetingToolbar() {
               aria-pressed={sidebar === 'chat'}
               aria-label="Toggle chat"
               className={cn(
-                'relative flex h-10 w-10 items-center justify-center rounded-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'relative flex h-9 w-9 items-center justify-center rounded-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:w-10',
                 sidebar === 'chat'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-secondary text-foreground hover:bg-accent',
@@ -222,7 +222,7 @@ export function MeetingToolbar() {
               aria-pressed={sidebar === 'participants'}
               aria-label="Toggle participants"
               className={cn(
-                'relative flex h-10 w-10 items-center justify-center rounded-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'relative flex h-9 w-9 items-center justify-center rounded-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:w-10',
                 sidebar === 'participants'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-secondary text-foreground hover:bg-accent',
@@ -238,7 +238,7 @@ export function MeetingToolbar() {
           label="Settings"
           shortcut="⌘,"
           onClick={() => openDialog('settings')}
-          className="bg-secondary text-foreground hover:bg-accent"
+          className="hidden bg-secondary text-foreground hover:bg-accent sm:flex"
         >
           <Settings2 className="h-4 w-4" />
         </ControlButton>

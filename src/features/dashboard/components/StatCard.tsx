@@ -20,14 +20,14 @@ export function StatCard({ label, value, hint, icon: Icon, iconClassName, childr
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="group relative overflow-hidden rounded-lg border border-border bg-card p-5 transition-colors hover:bg-accent/40"
+      className="group relative overflow-hidden rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/40 sm:p-5"
     >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {label}
           </p>
-          <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
+          <p className="mt-2 text-xl font-bold tracking-tight sm:text-2xl">{value}</p>
           {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
         </div>
         <div
