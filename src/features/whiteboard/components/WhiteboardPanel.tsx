@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Tldraw,
+  createTLStore,
   getSnapshot,
   loadSnapshot,
-  useTLStore,
   type TLEditorSnapshot,
+  type TLStore,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { motion } from 'framer-motion'
@@ -23,6 +24,22 @@ import { cn } from '@/lib/utils'
 
 type SyncStatus = 'connecting' | 'connected' | 'syncing' | 'offline'
 
+/**
+ * One store per room, kept alive at module scope. Closing and reopening
+ * the whiteboard (or a container remount) would otherwise build a fresh,
+ * empty store — the board is never wiped.
+ */
+const storesByRoom = new Map<string, TLStore>()
+
+function getRoomStore(roomId: string): TLStore {
+  let store = storesByRoom.get(roomId)
+  if (!store) {
+    store = createTLStore({})
+    storesByRoom.set(roomId, store)
+  }
+  return store
+}
+
 const SYNC_STATUS_META: Record<SyncStatus, { label: string; icon: typeof CloudUpload; className: string }> = {
   connecting: { label: 'Connecting…', icon: Loader2, className: 'text-muted-foreground' },
   connected: { label: 'Synced', icon: CloudUpload, className: 'text-success' },
@@ -34,10 +51,9 @@ export function WhiteboardPanel() {
   const meetingId = useMeetingStore((s) => s.meeting?.id) ?? 'm-1'
   const setStoreSyncStatus = useWhiteboardStore((s) => s.setSyncStatus)
 
-  // Local store; when the real backend ships, swap `useTLStore({})` for
-  // the tldraw sync hook backed by Socket.IO — this component changes
-  // only at this line.
-  const store = useTLStore({})
+  // Local store; when the real backend ships, swap for the tldraw sync
+  // hook backed by Socket.IO. Survives remounts — per-room module store.
+  const store = getRoomStore(meetingId)
   const adapterRef = useRef<WhiteboardSyncAdapter | null>(null)
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('connecting')
   const [collaborators, setCollaborators] = useState<WhiteboardCollaborator[]>([])
