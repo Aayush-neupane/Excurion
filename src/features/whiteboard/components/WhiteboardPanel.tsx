@@ -42,6 +42,7 @@ export function WhiteboardPanel() {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('connecting')
   const [collaborators, setCollaborators] = useState<WhiteboardCollaborator[]>([])
   const [connecting, setConnecting] = useState(true)
+  const lastPublishedVersion = useRef(0)
 
   const updateStatus = useCallback(
     (status: SyncStatus) => {
@@ -59,10 +60,12 @@ export function WhiteboardPanel() {
       const adapter = adapterRef.current
       if (!adapter) return
       updateStatus('syncing')
+      const version = Date.now()
+      lastPublishedVersion.current = version
       adapter.publishUpdate(
         {
           documentId: 'wb-mock',
-          version: Date.now(),
+          version,
           updatedAt: new Date().toISOString(),
           document: getSnapshot(store),
         },
@@ -119,6 +122,10 @@ export function WhiteboardPanel() {
         unsubscribers.push(
           adapter.onRemoteUpdate((remote: WhiteboardSnapshot) => {
             if (!remote.document) return
+            // Ignore snapshots we published ourselves (echo/stale) —
+            // reloading our own document resets the editor session and
+            // wipes any stroke still in progress.
+            if (remote.version && remote.version <= lastPublishedVersion.current) return
             try {
               loadSnapshot(store, remote.document as TLEditorSnapshot)
             } catch {

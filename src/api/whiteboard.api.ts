@@ -128,6 +128,7 @@ function createMockSyncAdapter(): WhiteboardSyncAdapter {
     },
     publishUpdate(snapshot, byUserId) {
       // `byUserId` → who published; a real socket impl would broadcast.
+      // Consumers ignore snapshots they sent themselves (version guard).
       void byUserId
       remoteUpdateCb?.({ ...snapshot, documentId: 'wb-mock' })
     },
