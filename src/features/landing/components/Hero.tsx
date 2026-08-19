@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { UserAvatar as Avatar } from '@/components/common/UserAvatar'
+import { Logo } from '@/components/common/Logo'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -171,8 +172,18 @@ export function Hero() {
     <section className="relative px-4 pb-20 pt-16 sm:px-6 sm:pt-24">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-3xl text-center">
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}>
-            <Badge variant="outline" className="gap-2 px-3 py-1 text-xs">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={0}
+            className="flex justify-center"
+          >
+            <Logo stacked markClassName="h-24 w-24" textClassName="text-5xl sm:text-6xl" />
+          </motion.div>
+
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}>
+            <Badge variant="outline" className="mt-6 gap-2 px-3 py-1 text-xs">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
               </span>
@@ -184,7 +195,7 @@ export function Hero() {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            custom={1}
+            custom={2}
             className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl"
           >
             The classroom that
@@ -196,7 +207,7 @@ export function Hero() {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            custom={2}
+            custom={3}
             className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
           >
             Excurion brings live lessons, an infinite whiteboard, and real-time
@@ -207,7 +218,7 @@ export function Hero() {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            custom={3}
+            custom={4}
             className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
             <Button size="lg" className="w-full sm:w-auto" asChild>
@@ -228,7 +239,7 @@ export function Hero() {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            custom={4}
+            custom={5}
             className="mt-4 text-xs text-muted-foreground"
           >
             Free forever for classrooms · No credit card required

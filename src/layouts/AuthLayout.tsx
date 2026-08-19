@@ -20,7 +20,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       <div className="mb-8 flex flex-col items-center gap-3">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
           <Link to="/" aria-label="Excurion home">
-            <Logo />
+            <Logo textClassName="text-3xl" />
           </Link>
         </motion.div>
         <motion.div
