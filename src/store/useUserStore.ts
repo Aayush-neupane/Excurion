@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Role, User } from '@/types/user'
+import type { Session, User } from '@/types/user'
 import { authApi } from '@/api/auth.api'
 import { STORAGE_KEYS } from '@/constants'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
@@ -10,12 +10,7 @@ interface UserState {
   isAuthenticated: boolean
   isHydrating: boolean
   login: (email: string, password: string) => Promise<User>
-  register: (input: {
-    name: string
-    email: string
-    password: string
-    role: Role
-  }) => Promise<User>
+  completeAuth: (session: Session) => void
   logout: () => Promise<void>
   setUser: (user: User) => void
   hydrate: () => Promise<void>
@@ -40,20 +35,11 @@ export const useUserStore = create<UserState>((set) => ({
 
   async login(email, password) {
     const session = await authApi.login({ email, password })
-    localStorage.setItem(
-      STORAGE_KEYS.session,
-      JSON.stringify({ token: session.accessToken, userId: session.user.id }),
-    )
-    set({
-      user: session.user,
-      sessionToken: session.accessToken,
-      isAuthenticated: true,
-    })
+    this.completeAuth(session)
     return session.user
   },
 
-  async register(input) {
-    const session = await authApi.register(input)
+  completeAuth(session) {
     localStorage.setItem(
       STORAGE_KEYS.session,
       JSON.stringify({ token: session.accessToken, userId: session.user.id }),
@@ -63,7 +49,6 @@ export const useUserStore = create<UserState>((set) => ({
       sessionToken: session.accessToken,
       isAuthenticated: true,
     })
-    return session.user
   },
 
   async logout() {

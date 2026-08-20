@@ -5,6 +5,41 @@ import type { AuthApi } from './auth.api'
 
 const emailSchema = (value: string) => value.trim().toLowerCase()
 
+const functionsBaseUrl: string =
+  import.meta.env.VITE_NETLIFY_FUNCTIONS_URL ?? `${window.location.origin}/.netlify/functions`
+
+function otpErrorMessage(message: string): string {
+  const m = message.toUpperCase()
+  if (m.includes('OTP_NOT_FOUND')) return 'No code found for that email. Request a new one.'
+  if (m.includes('OTP_EXPIRED')) return 'That code has expired. Request a new one.'
+  if (m.includes('OTP_TOO_MANY_ATTEMPTS')) return 'Too many wrong attempts. Request a new code.'
+  if (m.includes('OTP_INVALID')) return 'That code is incorrect. Check the email we sent and try again.'
+  if (m.includes('EMAIL_TAKEN')) return 'An account with this email already exists.'
+  if (m.includes('NO_ACCOUNT')) return 'No account found with this email address.'
+  if (m.includes('TOO_MANY_OTP')) return 'Too many codes requested. Try again in about an hour.'
+  if (m.includes('PASSWORD_WEAK')) return 'Password must be between 6 and 72 characters.'
+  if (m.includes('RATE_LIMIT')) return 'Too many requests. Wait a moment and try again.'
+  return message
+}
+
+/** Ask the Netlify function to create + email a 6-digit code. */
+async function sendEmailOtp(
+  email: string,
+  purpose: 'register' | 'reset-password',
+): Promise<{ devCode?: string }> {
+  const res = await fetch(`${functionsBaseUrl}/send-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, purpose }),
+  })
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null
+    throw new Error(otpErrorMessage(body?.error ?? 'Could not send the code.'))
+  }
+  const body = (await res.json().catch(() => null)) as { devCode?: string } | null
+  return { devCode: body?.devCode }
+}
+
 async function profileToUser(profile: {
   id: string
   name: string
@@ -65,32 +100,52 @@ export const supabaseAuthApi: AuthApi = {
     return session
   },
 
-  async register({ name, email, password, role }) {
+  async sendRegisterOtp({ email }) {
+    return sendEmailOtp(email, 'register')
+  },
+
+  async verifyRegisterOtp({ email, code, password, name, role }) {
     const supabase = getSupabase()
-    const { data, error } = await supabase.auth.signUp({
+    const { error: rpcError } = await supabase.rpc('otp_register', {
+      p_email: emailSchema(email),
+      p_code: code.trim(),
+      p_password: password,
+      p_name: name.trim(),
+      p_role: role,
+    })
+    if (rpcError) throw new Error(otpErrorMessage(rpcError.message))
+
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: emailSchema(email),
       password,
-      options: { data: { name: name.trim(), role } },
     })
     if (error) throw new Error(error.message)
-    if (!data.session) {
-      throw new Error('Check your email to confirm your account, then sign in.')
-    }
     const session = await sessionFromAuth(data.session)
     if (!session) throw new Error('Account profile could not be loaded.')
     return session
   },
 
-  async forgotPassword(email) {
+  async sendForgotPasswordOtp(email) {
+    return sendEmailOtp(email, 'reset-password')
+  },
+
+  async resetPasswordWithOtp({ email, code, newPassword }) {
     const supabase = getSupabase()
-    const { error } = await supabase.auth.resetPasswordForEmail(emailSchema(email), {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const { error: rpcError } = await supabase.rpc('otp_reset', {
+      p_email: emailSchema(email),
+      p_code: code.trim(),
+      p_new_password: newPassword,
+    })
+    if (rpcError) throw new Error(otpErrorMessage(rpcError.message))
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: emailSchema(email),
+      password: newPassword,
     })
     if (error) throw new Error(error.message)
-    return {
-      message: `If an account exists for ${emailSchema(email)}, a reset link has been sent.`,
-      resetId: 'sent',
-    }
+    const session = await sessionFromAuth(data.session)
+    if (!session) throw new Error('Account profile could not be loaded.')
+    return session
   },
 
   async getSession() {

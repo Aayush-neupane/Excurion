@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/common/LoadingState'
-import { Separator } from '@/components/ui/separator'
 
 export default function LoginPage() {
   const login = useUserStore((s) => s.login)
@@ -94,12 +93,6 @@ export default function LoginPage() {
         {mutation.isPending ? 'Signing in…' : 'Sign in'}
         {!mutation.isPending && <ArrowRight />}
       </Button>
-
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <Separator className="flex-1" />
-        demo: any email, any password
-        <Separator className="flex-1" />
-      </div>
 
       <p className="text-center text-sm text-muted-foreground">
         New to Excurion?{' '}

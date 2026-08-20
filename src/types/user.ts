@@ -31,11 +31,6 @@ export interface AuthCredentials {
   password: string
 }
 
-export interface RegisterInput extends AuthCredentials {
-  name: string
-  role: Role
-}
-
 export interface ProfileUpdate {
   name?: string
   title?: string

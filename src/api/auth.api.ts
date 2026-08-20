@@ -1,4 +1,4 @@
-import type { AuthCredentials, RegisterInput, Session, User } from '@/types/user'
+import type { AuthCredentials, Role, Session, User } from '@/types/user'
 import { currentUser, mockUsers } from '@/data/users'
 import { mockError, mockResult } from './client'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
@@ -6,8 +6,10 @@ import { supabaseAuthApi } from './auth.supabase'
 
 export interface AuthApi {
   login(credentials: AuthCredentials): Promise<Session>
-  register(input: RegisterInput): Promise<Session>
-  forgotPassword(email: string): Promise<{ message: string; resetId: string }>
+  sendRegisterOtp(input: { name: string; email: string; role: Role }): Promise<{ devCode?: string }>
+  verifyRegisterOtp(input: { email: string; code: string; password: string; name: string; role: Role }): Promise<Session>
+  sendForgotPasswordOtp(email: string): Promise<{ devCode?: string }>
+  resetPasswordWithOtp(input: { email: string; code: string; newPassword: string }): Promise<Session>
   getSession(): Promise<Session | null>
   logout(): Promise<void>
 }
@@ -37,32 +39,39 @@ export const mockAuthApi: AuthApi = {
     return mockResult(createSession(existing), 800)
   },
 
-  async register({ name, email, role }) {
+  async sendRegisterOtp({ name, email }) {
     if (!name.trim()) return mockError('Please enter your full name.')
-    if (mockUsers.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      return mockError('An account with this email already exists.')
-    }
+    if (!email.trim()) return mockError('Please enter your email address.')
+    return mockResult({}, 500)
+  },
+
+  async verifyRegisterOtp({ email, password, name }) {
+    if (password.length < 6) return mockError('Password must be at least 6 characters.')
+    const normalized = email.trim().toLowerCase()
+    const existing = mockUsers.find((u) => u.email.toLowerCase() === normalized)
+    if (existing) return mockResult(createSession(existing), 800)
     const user: User = {
       id: `u-${Date.now()}`,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      role,
-      title: role === 'teacher' ? 'Instructor' : 'Student',
+      name: name,
+      email: normalized,
+      role: 'student',
+      title: 'Student',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       createdAt: new Date().toISOString(),
     }
     return mockResult(createSession(user), 900)
   },
 
-  async forgotPassword(email) {
+  async sendForgotPasswordOtp(email) {
     if (!email.trim()) return mockError('Please enter your email address.')
-    return mockResult(
-      {
-        message: `If an account exists for ${email.trim()}, a reset link has been sent.`,
-        resetId: `reset-${Date.now()}`,
-      },
-      700,
-    )
+    return mockResult({}, 500)
+  },
+
+  async resetPasswordWithOtp({ email }) {
+    const normalized = email.trim().toLowerCase()
+    const existing = mockUsers.find((u) => u.email.toLowerCase() === normalized)
+    if (existing) return mockResult(createSession(existing), 700)
+    return mockResult(createSession(currentUser), 700)
   },
 
   async getSession() {

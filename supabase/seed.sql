@@ -5,6 +5,9 @@
 -- Passwords must use bcrypt cost 10 (gen_salt('bf', 10)): GoTrue rejects
 -- hashes with cost < 10 at sign-in time.
 
+-- pgcrypto may live in public OR extensions depending on the environment.
+set search_path = public, extensions;
+
 insert into auth.users (
   id, instance_id, email, encrypted_password, email_confirmed_at,
   raw_user_meta_data, raw_app_meta_data, aud, role, created_at, updated_at
