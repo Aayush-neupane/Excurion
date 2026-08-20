@@ -5,8 +5,9 @@ import { z } from 'zod'
  * POST /.netlify/functions/process-meeting-action
  *
  * Host-gated server-side meeting operations that must not be trusted to
- * the client alone. Currently one action: promote a participant to host.
- * Extend with recording start/stop, breakout room creation, etc.
+ * the client alone. Currently two actions: promote a participant to host
+ * and remove a participant. Extend with recording start/stop, breakout
+ * room creation, etc.
  */
 
 const requestSchema = z.object({
@@ -16,12 +17,8 @@ const requestSchema = z.object({
   targetUserId: z.string().uuid().optional(),
 })
 
-export default async function handler(event: {
-  httpMethod: string
-  body: string | null
-  headers?: Record<string, string | undefined>
-}) {
-  if (event.httpMethod !== 'POST') {
+export default async function handler(request: Request) {
+  if (request.method !== 'POST') {
     return json(405, { error: 'method_not_allowed' })
   }
 
@@ -32,13 +29,20 @@ export default async function handler(event: {
     return json(500, { error: 'server_not_configured' })
   }
 
-  const parsed = requestSchema.safeParse(JSON.parse(event.body ?? '{}'))
+  let payload: unknown
+  try {
+    payload = JSON.parse(await request.text())
+  } catch {
+    return json(400, { error: 'invalid_json' })
+  }
+
+  const parsed = requestSchema.safeParse(payload)
   if (!parsed.success) {
     return json(400, { error: 'validation_failed', details: parsed.error.flatten() })
   }
 
   const supabase = createClient(supabaseUrl, serviceRole)
-  const authHeader = event.headers?.['authorization'] ?? event.headers?.['Authorization']
+  const authHeader = request.headers.get('authorization')
   const token = authHeader?.replace(/^Bearer\s+/i, '')
   if (!token) return json(401, { error: 'unauthorized' })
 
@@ -105,9 +109,8 @@ export default async function handler(event: {
 }
 
 function json(status: number, body: unknown) {
-  return {
-    statusCode: status,
+  return new Response(JSON.stringify(body), {
+    status,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  }
+  })
 }

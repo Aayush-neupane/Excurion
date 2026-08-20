@@ -18,11 +18,8 @@ const requestSchema = z.object({
   link: z.string().url().max(500).optional(),
 })
 
-export default async function handler(event: {
-  httpMethod: string
-  body: string | null
-}) {
-  if (event.httpMethod !== 'POST') {
+export default async function handler(request: Request) {
+  if (request.method !== 'POST') {
     return json(405, { error: 'method_not_allowed' })
   }
 
@@ -33,7 +30,14 @@ export default async function handler(event: {
     return json(500, { error: 'server_not_configured' })
   }
 
-  const parsed = requestSchema.safeParse(JSON.parse(event.body ?? '{}'))
+  let payload: unknown
+  try {
+    payload = JSON.parse(await request.text())
+  } catch {
+    return json(400, { error: 'invalid_json' })
+  }
+
+  const parsed = requestSchema.safeParse(payload)
   if (!parsed.success) {
     return json(400, { error: 'validation_failed', details: parsed.error.flatten() })
   }
@@ -55,9 +59,8 @@ export default async function handler(event: {
 }
 
 function json(status: number, body: unknown) {
-  return {
-    statusCode: status,
+  return new Response(JSON.stringify(body), {
+    status,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  }
+  })
 }
