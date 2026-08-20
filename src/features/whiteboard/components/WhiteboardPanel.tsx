@@ -211,7 +211,7 @@ export function WhiteboardPanel() {
     <div className="relative h-full w-full overflow-hidden">
       <Tldraw
         store={store}
-        licenseKey="excurion-classroom-hobby"
+        licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
         colorScheme="dark"
         className="h-full w-full"
         overrides={OVERRIDES}
