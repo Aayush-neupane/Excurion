@@ -38,7 +38,7 @@ export function ParticipantsPanel() {
   }
 
   const promote = async (participant: Participant) => {
-    if (!meeting || participant.userId === userId) return
+    if (!meeting || !participant.userId || participant.userId === userId) return
     try {
       await meetingApi.promoteHost(meeting.id, participant.userId)
       setParticipants(
@@ -132,6 +132,8 @@ function ParticipantRow({
   simulatedSpeaking,
   index = 0,
   onLowerHand,
+  onPromote,
+  onRemove,
 }: {
   participant: Participant
   isSelf: boolean

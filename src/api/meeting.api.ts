@@ -22,6 +22,7 @@ import { supabaseMeetingApi } from './meeting.supabase'
 export interface MeetingApi {
   listMeetings(): Promise<Meeting[]>
   getMeeting(id: string): Promise<Meeting>
+  getRoomByCode(roomCode: string): Promise<Meeting | null>
   findMeetingByCode(roomCode: string): Promise<Meeting | null>
   getUpcoming(): Promise<Meeting[]>
   getRecent(): Promise<Meeting[]>
@@ -126,6 +127,10 @@ export const mockMeetingApi: MeetingApi = {
     )
   },
 
+  async getRoomByCode(roomCode) {
+    return mockResult(getMeetingByRoomCode(roomCode.toLowerCase()) ?? null, 300)
+  },
+
   async joinRoom({ roomCode }) {
     const normalized = roomCode.trim().toLowerCase()
     const meeting = getMeetingByRoomCode(normalized)
@@ -155,7 +160,7 @@ export const mockMeetingApi: MeetingApi = {
     return mockResult(undefined, 100)
   },
 
-  async promoteHost(roomId, targetUserId) {
+  async promoteHost(roomId, _targetUserId) {
     const meeting = getMeetingById(roomId)
     if (!meeting) return mockError('Meeting not found.')
     return mockResult(undefined, 500)

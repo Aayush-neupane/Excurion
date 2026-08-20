@@ -109,8 +109,7 @@ async function processMeetingAction(
   targetUserId?: string,
 ): Promise<void> {
   const supabase = getSupabase()
-  const { data: session } = await supabase.auth.getSession()
-  const token = session?.access_token
+  const token = (await supabase.auth.getSession()).data.session?.access_token
   if (!token) throw new Error('You are not signed in.')
 
   const res = await fetch(`${functionsBaseUrl}/process-meeting-action`, {
@@ -345,6 +344,20 @@ export const supabaseMeetingApi = {
       participants: (participants ?? []).map((p: ParticipantRow) => toParticipant(p)),
       inviteUrl: `${window.location.origin}/join?code=${room.room_code}`,
     }
+  },
+
+  async getRoomByCode(roomCode: string): Promise<Meeting | null> {
+    const supabase = getSupabase()
+    const { data: room, error } = await supabase
+      .from('rooms')
+      .select(ROOM_COLUMNS)
+      .eq('room_code', roomCode.trim().toLowerCase())
+      .maybeSingle()
+
+    if (error) throw new Error(error.message)
+    if (!room) return null
+    const counts = await fetchParticipantCounts([room.id])
+    return toMeeting(room, counts.get(room.id) ?? 0)
   },
 
   async joinRoom({ roomCode }: JoinMeetingInput): Promise<JoinRoomResult> {
