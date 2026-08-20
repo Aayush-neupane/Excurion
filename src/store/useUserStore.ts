@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Role, User } from '@/types/user'
 import { authApi } from '@/api/auth.api'
 import { STORAGE_KEYS } from '@/constants'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
 
 interface UserState {
   user: User | null
@@ -76,6 +77,25 @@ export const useUserStore = create<UserState>((set) => ({
   },
 
   async hydrate() {
+    if (isSupabaseConfigured()) {
+      try {
+        const session = await authApi.getSession()
+        if (!session) {
+          set({ isHydrating: false })
+          return
+        }
+        set({
+          user: session.user,
+          sessionToken: session.accessToken,
+          isAuthenticated: true,
+          isHydrating: false,
+        })
+        return
+      } catch {
+        set({ isHydrating: false })
+        return
+      }
+    }
     const stored = loadStoredSession()
     if (!stored) {
       set({ isHydrating: false })

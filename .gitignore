@@ -31,3 +31,6 @@ storybook-static
 
 # Local Netlify folder
 .netlify
+
+# Supabase CLI link metadata (project refs/connection strings)
+supabase/.temp

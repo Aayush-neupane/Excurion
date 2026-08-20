@@ -16,6 +16,8 @@ import {
   mockParticipants,
 } from '@/data/meetings'
 import { mockError, mockResult, randomId, randomRoomCode } from './client'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { supabaseMeetingApi } from './meeting.supabase'
 
 export interface MeetingApi {
   listMeetings(): Promise<Meeting[]>
@@ -143,7 +145,11 @@ export const mockMeetingApi: MeetingApi = {
   },
 }
 
-export const meetingApi: MeetingApi = mockMeetingApi
+const supabaseMeetsContract: MeetingApi = supabaseMeetingApi
+
+export const meetingApi: MeetingApi = isSupabaseConfigured()
+  ? supabaseMeetsContract
+  : mockMeetingApi
 
 const nowIso = () => new Date().toISOString()
 

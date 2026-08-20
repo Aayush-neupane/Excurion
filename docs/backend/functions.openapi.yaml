@@ -1,0 +1,106 @@
+openapi: 3.1.0
+info:
+  title: Excurion Netlify Functions API
+  description: Server-side privileged operations. All endpoints require a Bearer token (Supabase access token).
+  version: 1.0.0
+servers:
+  - url: https://excurion.netlify.app/.netlify/functions
+    description: production
+paths:
+  /send-notification:
+    post:
+      summary: Create a notification for a specific user (server-side)
+      operationId: sendNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, kind, title]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                kind:
+                  type: string
+                  enum: [meeting, reminder, chat, recording, system, warning]
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 140
+                body:
+                  type: string
+                  maxLength: 500
+                  default: ""
+                link:
+                  type: string
+                  format: uri
+                  maxLength: 500
+      responses:
+        "201":
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: validation_failed }
+        "405":
+          description: Method not allowed
+        "500":
+          description: Service role not configured on server
+  /process-meeting-action:
+    post:
+      summary: Host-gated meeting actions
+      description: Requires an Authorization: Bearer <access-token> header for the room host.
+      operationId: processMeetingAction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [roomId, action]
+              properties:
+                roomId:
+                  type: string
+                  format: uuid
+                action:
+                  type: string
+                  enum: [promote-host, remove-participant]
+                participantId:
+                  type: string
+                  format: uuid
+                  description: For remove-participant, or as an alternative to targetUserId
+                targetUserId:
+                  type: string
+                  format: uuid
+                  description: For promote-host (used when participantId is absent)
+      responses:
+        "200":
+          description: Action applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+        "400":
+          description: Validation failed
+        "401":
+          description: Missing or invalid bearer token
+        "403":
+          description: Caller is not the room host
+        "404":
+          description: Participant not found
+        "502":
+          description: Upstream action failed

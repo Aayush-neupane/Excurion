@@ -1,6 +1,8 @@
 import type { ProfileUpdate, User } from '@/types/user'
 import { currentUser } from '@/data/users'
 import { mockResult } from './client'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { supabaseProfileApi } from './profile.supabase'
 
 export interface ProfileApi {
   getProfile(): Promise<User>
@@ -23,4 +25,6 @@ export const mockProfileApi: ProfileApi = {
   },
 }
 
-export const profileApi: ProfileApi = mockProfileApi
+export const profileApi: ProfileApi = isSupabaseConfigured()
+  ? supabaseProfileApi
+  : mockProfileApi

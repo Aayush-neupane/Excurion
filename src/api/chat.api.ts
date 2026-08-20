@@ -1,6 +1,8 @@
 import type { ChatMessage, SendMessageInput, TypingState } from '@/types/chat'
 import { mockChatMessages } from '@/data/chat'
 import { mockError, mockResult, randomId } from './client'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { supabaseChatApi } from './chat.supabase'
 
 export interface ChatApi {
   getMessages(meetingId: string): Promise<ChatMessage[]>
@@ -40,4 +42,4 @@ export const mockChatApi: ChatApi = {
   },
 }
 
-export const chatApi: ChatApi = mockChatApi
+export const chatApi: ChatApi = isSupabaseConfigured() ? supabaseChatApi : mockChatApi

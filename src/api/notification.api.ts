@@ -1,6 +1,8 @@
 import type { AppNotification, NotificationPreferences } from '@/types/notification'
 import { mockNotifications } from '@/data/notifications'
 import { mockResult, randomId } from './client'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { supabaseNotificationApi } from './notification.supabase'
 
 export interface NotificationApi {
   list(): Promise<AppNotification[]>
@@ -60,7 +62,9 @@ function mergePreferences(
   }
 }
 
-export const notificationApi: NotificationApi = mockNotificationApi
+export const notificationApi: NotificationApi = isSupabaseConfigured()
+  ? supabaseNotificationApi
+  : mockNotificationApi
 
 export function notificationKindToId(): string {
   return randomId('notif')

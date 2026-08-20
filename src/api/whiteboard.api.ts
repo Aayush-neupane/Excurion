@@ -5,6 +5,8 @@ import type {
   WhiteboardSyncAdapter,
 } from '@/types/whiteboard'
 import { mockResult } from './client'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { supabaseWhiteboardApi } from './whiteboard.supabase'
 
 export interface WhiteboardApi {
   getDocument(meetingId: string): Promise<WhiteboardMeta>
@@ -142,4 +144,6 @@ function createMockSyncAdapter(): WhiteboardSyncAdapter {
   }
 }
 
-export const whiteboardApi: WhiteboardApi = mockWhiteboardApi
+export const whiteboardApi: WhiteboardApi = isSupabaseConfigured()
+  ? supabaseWhiteboardApi
+  : mockWhiteboardApi

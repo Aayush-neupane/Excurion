@@ -1,6 +1,8 @@
 import type { AuthCredentials, RegisterInput, Session, User } from '@/types/user'
 import { currentUser, mockUsers } from '@/data/users'
 import { mockError, mockResult } from './client'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { supabaseAuthApi } from './auth.supabase'
 
 export interface AuthApi {
   login(credentials: AuthCredentials): Promise<Session>
@@ -72,4 +74,4 @@ export const mockAuthApi: AuthApi = {
   },
 }
 
-export const authApi: AuthApi = mockAuthApi
+export const authApi: AuthApi = isSupabaseConfigured() ? supabaseAuthApi : mockAuthApi
