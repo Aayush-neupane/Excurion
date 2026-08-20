@@ -15,7 +15,7 @@ const requestSchema = z.object({
   purpose: z.enum(['register', 'reset-password']),
 })
 
-const APP_URL = 'https://excurion.app'
+const APP_URL = 'https://excurion.com'
 
 function emailHtml(code: string, purpose: 'register' | 'reset-password'): string {
   const headline =
@@ -35,7 +35,7 @@ function emailHtml(code: string, purpose: 'register' | 'reset-password'): string
           <tr>
             <td style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 55%,#4f46e5 100%);padding:28px 32px;">
               <span style="color:#ffffff;font-size:22px;font-weight:800;letter-spacing:0.5px;">EXCURION</span>
-              <span style="display:block;color:#c7d2fe;font-size:12px;margin-top:2px;">excurion.app</span>
+              <span style="display:block;color:#c7d2fe;font-size:12px;margin-top:2px;">excurion.com</span>
             </td>
           </tr>
           <tr>
@@ -95,10 +95,9 @@ export default async function handler(request: Request) {
   }
 
   const apiKey = process.env.RESEND_API_KEY
-  // Until a real domain (e.g. excurion.app) is verified in Resend, use the
-  // built-in test sender. Resend's test mode only delivers to the inbox of
-  // the account that owns the key.
-  const from = process.env.RESEND_FROM ?? 'Excurion <no-reply@excurion.app>'
+  // Test mode only delivers to the key owner's own inbox; once a domain is
+  // verified in Resend, set RESEND_FROM in Netlify (e.g. no-reply@excurion.com).
+  const from = process.env.RESEND_FROM ?? 'Excurion <onboarding@resend.dev>'
 
   if (apiKey) {
     const res = await fetch('https://api.resend.com/emails', {
