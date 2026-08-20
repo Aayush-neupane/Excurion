@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion'
-import { Hand, Mic, MicOff, Video, VideoOff, Crown, X } from 'lucide-react'
+import { Hand, Mic, MicOff, Video, VideoOff, Crown, X, UserPlus, LogOut } from 'lucide-react'
+import { toast } from 'sonner'
+import { meetingApi } from '@/api/meeting.api'
 import type { Participant } from '@/types/meeting'
 import { useMeetingStore } from '@/store/useMeetingStore'
 import { useUserStore } from '@/store/useUserStore'
@@ -33,6 +35,31 @@ export function ParticipantsPanel() {
         p.id === participantId ? { ...p, raisedHand: false } : p,
       ),
     )
+  }
+
+  const promote = async (participant: Participant) => {
+    if (!meeting || participant.userId === userId) return
+    try {
+      await meetingApi.promoteHost(meeting.id, participant.userId)
+      setParticipants(
+        participants.map((p) => (p.id === participant.id ? { ...p, isHost: true } : { ...p, isHost: false })),
+      )
+      toast.success(`${participant.name} is now the host.`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not promote participant.')
+    }
+  }
+
+  const remove = async (participant: Participant) => {
+    if (!meeting || participant.userId === userId || participant.isHost) return
+    if (!window.confirm(`Remove ${participant.name} from the room?`)) return
+    try {
+      await meetingApi.removeParticipant(participant.id, meeting.id)
+      setParticipants(participants.filter((p) => p.id !== participant.id))
+      toast.success(`${participant.name} was removed from the room.`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not remove participant.')
+    }
   }
 
   return (
@@ -84,6 +111,8 @@ export function ParticipantsPanel() {
               isSelf={p.id === 'p-self'}
               simulatedSpeaking={simulated.has(p.id)}
               onLowerHand={isHost ? () => lowerHand(p.id) : undefined}
+              onPromote={isHost && p.userId !== userId ? () => void promote(p) : undefined}
+              onRemove={isHost && p.userId !== userId ? () => void remove(p) : undefined}
             />
           ))}
           {others.length === 0 && (
@@ -109,6 +138,8 @@ function ParticipantRow({
   simulatedSpeaking: boolean
   index?: number
   onLowerHand?: () => void
+  onPromote?: () => void
+  onRemove?: () => void
 }) {
   const p = participant
 
@@ -153,6 +184,26 @@ function ParticipantRow({
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
+        {onPromote && (
+          <button
+            onClick={onPromote}
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+            aria-label={`Make ${p.name} host`}
+            title="Make host"
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            aria-label={`Remove ${p.name}`}
+            title="Remove from room"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        )}
         {p.raisedHand && onLowerHand && (
           <button
             onClick={onLowerHand}

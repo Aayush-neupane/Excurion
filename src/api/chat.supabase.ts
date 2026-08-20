@@ -1,4 +1,5 @@
 import type { ChatMessage, SendMessageInput, TypingState } from '@/types/chat'
+import type { Json } from '@/types/supabase/database.types'
 import { getSupabase } from '@/lib/supabase/client'
 
 interface MessageRow {
@@ -6,7 +7,7 @@ interface MessageRow {
   room_id: string
   author_id: string
   content: string
-  metadata: Record<string, unknown>
+  metadata: Json
   status: 'active' | 'edited' | 'deleted'
   created_at: string
   edited_at: string | null
@@ -17,7 +18,7 @@ const MESSAGE_SELECT =
   'id, room_id, author_id, content, metadata, status, created_at, edited_at, profiles(name, avatar_url)'
 
 function toChatMessage(row: MessageRow): ChatMessage {
-  const meta = row.metadata ?? {}
+  const meta = (row.metadata ?? {}) as Record<string, unknown>
   return {
     id: row.id,
     meetingId: row.room_id,
@@ -61,8 +62,8 @@ export const supabaseChatApi = {
       .insert({
         room_id: input.meetingId,
         content: input.content.trim(),
-        metadata: input.attachment ? { attachment: input.attachment } : {},
-      })
+        metadata: (input.attachment ? { attachment: input.attachment } : {}) as Json,
+      } as never)
       .select(MESSAGE_SELECT)
       .single()
 
@@ -72,6 +73,29 @@ export const supabaseChatApi = {
 
   async getTypingUsers(): Promise<TypingState[]> {
     return []
+  },
+
+  async subscribeMessages(
+    meetingId: string,
+    onMessage: (message: ChatMessage) => void,
+  ): Promise<() => void> {
+    const supabase = getSupabase()
+    const channel = supabase
+      .channel(`chat-${meetingId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${meetingId}` },
+        (payload) => {
+          const row = payload.new as MessageRow
+          if (row.status === 'deleted') return
+          onMessage(toChatMessage(row))
+        },
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
   },
 
   async markMessagesRead(meetingId: string): Promise<void> {

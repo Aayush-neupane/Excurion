@@ -13,6 +13,7 @@ const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'))
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'))
 const MeetingRoomPage = lazy(() => import('@/features/meeting/pages/MeetingRoomPage'))
+const JoinInvitePage = lazy(() => import('@/features/meeting/pages/JoinInvitePage'))
 const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage'))
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'))
 const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'))
@@ -76,7 +77,7 @@ export const router = createBrowserRouter([
     element: (
       <GuestRoute>
         {withSuspense(
-          <AuthLayout title="Reset your password" subtitle="We'll email you a secure reset link">
+          <AuthLayout title="Reset your password" subtitle="We'll email you a one-time verification code">
             <ForgotPasswordPage />
           </AuthLayout>,
         )}
@@ -103,12 +104,22 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: '/meeting/:meetingId',
-    element: (
+    element: <ProtectedRoute />,
+    errorElement: (
       <ErrorBoundary>
-        {withSuspense(<MeetingRoomPage />)}
+        <Outlet />
       </ErrorBoundary>
     ),
+    children: [
+      {
+        path: '/meeting/:meetingId',
+        element: withSuspense(<MeetingRoomPage />),
+      },
+      {
+        path: '/join/:roomCode',
+        element: withSuspense(<JoinInvitePage />),
+      },
+    ],
   },
   {
     path: '*',

@@ -32,6 +32,13 @@ export interface MeetingApi {
   getParticipants(meetingId: string): Promise<Participant[]>
   leaveRoom(meetingId: string): Promise<void>
   endRoom(meetingId: string): Promise<void>
+  heartbeat(meetingId: string): Promise<void>
+  promoteHost(roomId: string, targetUserId: string): Promise<void>
+  removeParticipant(participantId: string, roomId: string): Promise<void>
+  subscribeRoster(
+    roomId: string,
+    handlers: { onRosterChange: () => void; onSelfRemoved: () => void },
+  ): Promise<() => void>
 }
 
 export const mockMeetingApi: MeetingApi = {
@@ -142,6 +149,24 @@ export const mockMeetingApi: MeetingApi = {
 
   async endRoom() {
     return mockResult(undefined, 400)
+  },
+
+  async heartbeat() {
+    return mockResult(undefined, 100)
+  },
+
+  async promoteHost(roomId, targetUserId) {
+    const meeting = getMeetingById(roomId)
+    if (!meeting) return mockError('Meeting not found.')
+    return mockResult(undefined, 500)
+  },
+
+  async removeParticipant() {
+    return mockResult(undefined, 500)
+  },
+
+  async subscribeRoster() {
+    return mockResult(() => {}, 50)
   },
 }
 

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
+import { meetingApi } from '@/api/meeting.api'
 import { useMeetingStore } from '@/store/useMeetingStore'
 import { useChatStore } from '@/store/useChatStore'
 import { useWhiteboardStore } from '@/store/useWhiteboardStore'
@@ -47,6 +48,37 @@ export default function MeetingRoomPage() {
       cancelled = true
     }
   }, [meetingId, join, navigate])
+
+  useEffect(() => {
+    if (!meetingId) return
+
+    void meetingApi.heartbeat(meetingId)
+    const heartbeat = setInterval(() => {
+      void meetingApi.heartbeat(meetingId)
+    }, 30_000)
+
+    let unsubscribeRoster = () => {}
+    meetingApi
+      .subscribeRoster(meetingId, {
+        onRosterChange: () => void useMeetingStore.getState().refreshParticipants(),
+        onSelfRemoved: () => {
+          toast.info('You were removed from this room by the host.')
+          useMeetingStore
+            .getState()
+            .leave()
+            .catch(() => {})
+            .finally(() => navigate('/app', { replace: true }))
+        },
+      })
+      .then((unsubscribe) => {
+        unsubscribeRoster = unsubscribe
+      })
+
+    return () => {
+      clearInterval(heartbeat)
+      unsubscribeRoster()
+    }
+  }, [meetingId, navigate])
 
   useEffect(() => {
     return () => {

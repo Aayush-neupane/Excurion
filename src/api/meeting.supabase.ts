@@ -26,11 +26,14 @@ interface RoomRow {
   created_at: string
 }
 
+const STALE_AFTER_MS = 95_000
+
 interface ParticipantRow {
   id: string
   room_id: string
   user_id: string
   is_host: boolean
+  last_seen_at: string | null
   mic: 'on' | 'off' | 'unavailable'
   camera: 'on' | 'off' | 'unavailable'
   screen_share: boolean
@@ -87,18 +90,52 @@ function toParticipant(row: ParticipantRow): Participant {
 const ROOM_COLUMNS =
   'id, title, description, type, subject, room_code, host_id, status, scheduled_at, duration_minutes, recording_url, started_at, ended_at, created_at'
 
+const PARTICIPANT_COLUMNS =
+  'id, room_id, user_id, is_host, mic, camera, screen_share, speaking, raised_hand, connection, joined_at, status, last_seen_at, profiles(name, role, avatar_url)'
+
+function isFresh(row: { status: string; last_seen_at: string | null }): boolean {
+  if (row.status !== 'active') return false
+  if (!row.last_seen_at) return true
+  return Date.now() - new Date(row.last_seen_at).getTime() <= STALE_AFTER_MS
+}
+
+const functionsBaseUrl: string =
+  import.meta.env.VITE_NETLIFY_FUNCTIONS_URL ?? `${window.location.origin}/.netlify/functions`
+
+async function processMeetingAction(
+  roomId: string,
+  action: 'promote-host' | 'remove-participant',
+  participantId?: string,
+  targetUserId?: string,
+): Promise<void> {
+  const supabase = getSupabase()
+  const { data: session } = await supabase.auth.getSession()
+  const token = session?.access_token
+  if (!token) throw new Error('You are not signed in.')
+
+  const res = await fetch(`${functionsBaseUrl}/process-meeting-action`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ roomId, action, participantId, targetUserId }),
+  })
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null
+    throw new Error(body?.error === 'not_host' ? 'Only the host can do this.' : body?.error ?? 'Action failed.')
+  }
+}
+
 async function fetchParticipantCounts(roomIds: string[]): Promise<Map<string, number>> {
   if (roomIds.length === 0) return new Map()
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('participants')
-    .select('room_id, status')
+    .select('room_id, status, last_seen_at')
     .in('room_id', roomIds)
 
   if (error) throw new Error(error.message)
   const counts = new Map<string, number>()
   for (const row of data ?? []) {
-    if (row.status !== 'active') continue
+    if (!isFresh(row)) continue
     counts.set(row.room_id, (counts.get(row.room_id) ?? 0) + 1)
   }
   return counts
@@ -195,47 +232,75 @@ export const supabaseMeetingApi = {
 
   async getStatistics(): Promise<ClassStatistics> {
     const supabase = getSupabase()
-    const [{ data: myRooms }, { data: pastRooms }, { count: attended }] = await Promise.all([
-      supabase.from('rooms').select('id, started_at, ended_at').eq('host_id', (await supabase.auth.getUser()).data.user?.id ?? ''),
-      supabase
-        .from('rooms')
-        .select('id, started_at, ended_at')
-        .eq('status', 'ended')
-        .order('ended_at', { ascending: false })
-        .limit(100),
+    const me = (await supabase.auth.getUser()).data.user?.id ?? ''
+
+    const [{ data: myRooms }, { data: roster }] = await Promise.all([
+      supabase.from('rooms').select('id, host_id, started_at, ended_at').eq('host_id', me),
       supabase
         .from('participants')
-        .select('room_id', { count: 'exact', head: true })
-        .eq('status', 'left'),
+        .select('room_id, user_id, status')
+        .in(
+          'room_id',
+          (await supabase.from('rooms').select('id').eq('host_id', me)).data?.map((r) => r.id) ?? [],
+        ),
     ])
+    const rooms = (myRooms ?? []).filter((r) => r.host_id === me)
 
-    const totalClasses = myRooms?.length ?? 0
-    const totalMinutes = (myRooms ?? []).reduce((sum, r) => {
+    const totalClasses = rooms.length
+    const totalMinutes = rooms.reduce((sum, r) => {
       if (!r.started_at || !r.ended_at) return sum
-      return sum + Math.round((new Date(r.ended_at).getTime() - new Date(r.started_at).getTime()) / 60_000)
+      return sum + Math.max(0, Math.round((new Date(r.ended_at).getTime() - new Date(r.started_at).getTime()) / 60_000))
     }, 0)
 
-    const totalStudents = new Set((pastRooms ?? []).map((r) => r.id)).size
-    const attendanceRate = attended ? 100 : 100
+    const roomIds = new Set(rooms.map((r) => r.id))
+    const students = new Set((roster ?? []).filter((p) => roomIds.has(p.room_id)).map((p) => p.user_id))
+    const roomsWithStudents = new Set(
+      (roster ?? []).filter((p) => roomIds.has(p.room_id) && p.status === 'left').map((p) => p.room_id),
+    ).size
+    const attendedCount = students.size
+    const attendanceRate = rooms.length > 0 ? Math.round((roomsWithStudents / rooms.length) * 100) : 0
 
-    const last7 = Array.from({ length: 7 }, (_, i) => {
+    const dayKeys = Array.from({ length: 7 }, (_, i) => {
       const d = new Date()
       d.setDate(d.getDate() - (6 - i))
-      return d.toLocaleDateString('en-US', { weekday: 'short' })
+      return d
     })
-    const weeklyAttendance = last7.map((day) => ({ day, rate: 100 }))
-    const weeklyActivity = last7.map((day, i) => ({
-      day,
-      classes: (totalClasses - (6 - i)) % 8,
-    }))
+    const byDay = new Map<string, { classes: number; attended: number }>()
+    for (const d of dayKeys) {
+      byDay.set(d.toDateString(), { classes: 0, attended: 0 })
+    }
+    const rosterByRoom = new Map<string, Set<string>>()
+    for (const p of roster ?? []) {
+      if (!roomIds.has(p.room_id) || p.user_id === me) continue
+      if (!rosterByRoom.has(p.room_id)) rosterByRoom.set(p.room_id, new Set())
+      rosterByRoom.get(p.room_id)!.add(p.user_id)
+    }
+    for (const r of rooms) {
+      if (!r.started_at) continue
+      const day = new Date(r.started_at).toDateString()
+      const entry = byDay.get(day)
+      if (entry) {
+        entry.classes += 1
+        if ((rosterByRoom.get(r.id)?.size ?? 0) > 0) entry.attended += 1
+      }
+    }
 
     return {
       totalClasses,
       totalMinutes,
-      totalStudents,
+      totalStudents: attendedCount,
       attendanceRate,
-      weeklyAttendance,
-      weeklyActivity,
+      weeklyAttendance: dayKeys.map((d) => ({
+        day: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        rate: (() => {
+          const e = byDay.get(d.toDateString())
+          return e && e.classes > 0 ? Math.round((e.attended / e.classes) * 100) : 0
+        })(),
+      })),
+      weeklyActivity: dayKeys.map((d) => ({
+        day: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        classes: byDay.get(d.toDateString())?.classes ?? 0,
+      })),
     }
   },
 
@@ -262,7 +327,7 @@ export const supabaseMeetingApi = {
       p_scheduled_at: input.scheduledAt ?? null,
       p_duration_minutes: input.duration ?? null,
       p_participant_limit: 100,
-    })
+    } as never)
 
     if (error) throw new Error(mapErrors(error.message))
     const rows = roomData as unknown as RoomRow[]
@@ -271,7 +336,7 @@ export const supabaseMeetingApi = {
 
     const { data: participants } = await supabase
       .from('participants')
-      .select('id, room_id, user_id, is_host, mic, camera, screen_share, speaking, raised_hand, connection, joined_at, status, profiles(name, role, avatar_url)')
+      .select(PARTICIPANT_COLUMNS)
       .eq('room_id', room.id)
 
     return {
@@ -291,12 +356,11 @@ export const supabaseMeetingApi = {
     if (!room) throw new Error('Room could not be joined.')
     const { data: participants } = await supabase
       .from('participants')
-      .select('id, room_id, user_id, is_host, mic, camera, screen_share, speaking, raised_hand, connection, joined_at, status, profiles(name, role, avatar_url)')
+      .select(PARTICIPANT_COLUMNS)
       .eq('room_id', room.id)
-      .eq('status', 'active')
 
     return {
-      meeting: toMeeting(room, (participants ?? []).length),
+      meeting: toMeeting(room, (participants ?? []).filter(isFresh).length),
       token: `rtc.${room.id}`,
       participants: (participants ?? []).map((p: ParticipantRow) => toParticipant(p)),
     }
@@ -306,13 +370,12 @@ export const supabaseMeetingApi = {
     const supabase = getSupabase()
     const { data, error } = await supabase
       .from('participants')
-      .select('id, room_id, user_id, is_host, mic, camera, screen_share, speaking, raised_hand, connection, joined_at, status, profiles(name, role, avatar_url)')
+      .select(PARTICIPANT_COLUMNS)
       .eq('room_id', meetingId)
-      .eq('status', 'active')
       .order('joined_at', { ascending: true })
 
     if (error) throw new Error(error.message)
-    return (data ?? []).map((p: ParticipantRow) => toParticipant(p))
+    return (data ?? []).filter(isFresh).map((p: ParticipantRow) => toParticipant(p))
   },
 
   async leaveRoom(meetingId: string): Promise<void> {
@@ -325,5 +388,55 @@ export const supabaseMeetingApi = {
     const supabase = getSupabase()
     const { error } = await supabase.rpc('end_room', { p_room_id: meetingId })
     if (error) throw new Error(mapErrors(error.message))
+  },
+
+  async heartbeat(meetingId: string): Promise<void> {
+    const supabase = getSupabase()
+    const user = (await supabase.auth.getUser()).data.user
+    if (!user) return
+    await supabase
+      .from('participants')
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq('room_id', meetingId)
+      .eq('user_id', user.id)
+  },
+
+  async promoteHost(roomId: string, targetUserId: string): Promise<void> {
+    await processMeetingAction(roomId, 'promote-host', undefined, targetUserId)
+  },
+
+  async removeParticipant(participantId: string, roomId: string): Promise<void> {
+    await processMeetingAction(roomId, 'remove-participant', participantId)
+  },
+
+  /** Live roster: fires on any participant change; signals when I'm removed. */
+  async subscribeRoster(
+    roomId: string,
+    handlers: { onRosterChange: () => void; onSelfRemoved: () => void },
+  ): Promise<() => void> {
+    const supabase = getSupabase()
+    const user = (await supabase.auth.getUser()).data.user
+    if (!user) return () => {}
+
+    const channel = supabase
+      .channel(`roster-${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'participants', filter: `room_id=eq.${roomId}` },
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            handlers.onRosterChange()
+            return
+          }
+          const row = payload.new as { user_id: string; status: string }
+          if (row.user_id === user.id && row.status === 'removed') handlers.onSelfRemoved()
+          else handlers.onRosterChange()
+        },
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
   },
 }

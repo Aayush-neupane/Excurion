@@ -9,6 +9,10 @@ export interface ChatApi {
   sendMessage(input: SendMessageInput): Promise<ChatMessage>
   getTypingUsers(meetingId: string): Promise<TypingState[]>
   markMessagesRead(meetingId: string): Promise<void>
+  subscribeMessages(
+    meetingId: string,
+    onMessage: (message: ChatMessage) => void,
+  ): Promise<() => void>
 }
 
 export const mockChatApi: ChatApi = {
@@ -39,6 +43,10 @@ export const mockChatApi: ChatApi = {
 
   async markMessagesRead() {
     return mockResult(undefined, 80)
+  },
+
+  async subscribeMessages() {
+    return mockResult(() => {}, 50)
   },
 }
 

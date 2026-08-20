@@ -21,6 +21,7 @@ interface MeetingState {
   sidebar: 'chat' | 'participants' | null
   join: (meetingId: string) => Promise<void>
   leave: () => Promise<void>
+  refreshParticipants: () => Promise<void>
   setMeeting: (meeting: Meeting | null) => void
   setParticipants: (participants: Participant[]) => void
   setView: (view: MeetingView) => void
@@ -84,6 +85,17 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
       sidebar: null,
       view: 'grid',
     })
+  },
+
+  async refreshParticipants() {
+    const meetingId = get().meeting?.id
+    if (!meetingId || !get().isInMeeting) return
+    try {
+      const participants = await meetingApi.getParticipants(meetingId)
+      set({ participants })
+    } catch {
+      // ignore transient roster refresh failures
+    }
   },
 
   setMeeting: (meeting) => set({ meeting }),

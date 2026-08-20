@@ -4,6 +4,7 @@ import { chatApi } from '@/api/chat.api'
 
 interface ChatState {
   messages: ChatMessage[]
+  unsubscribeRealtime: (() => void) | null
   typingUsers: TypingState[]
   isTyping: boolean
   unreadCount: number
@@ -20,6 +21,7 @@ interface ChatState {
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
+  unsubscribeRealtime: null,
   typingUsers: [],
   isTyping: false,
   unreadCount: 0,
@@ -32,6 +34,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const messages = await chatApi.getMessages(meetingId)
       set({ messages, isLoading: false, lastReadAt: new Date().toISOString() })
+      get().unsubscribeRealtime?.()
+      const unsubscribe = await chatApi.subscribeMessages(meetingId, (message) => {
+        const state = get()
+        if (state.messages.some((m) => m.id === message.id)) return
+        set({ messages: [...state.messages, message], unreadCount: state.unreadCount + 1 })
+      })
+      set({ unsubscribeRealtime: unsubscribe })
     } catch {
       set({ isLoading: false, hasError: true })
     }
@@ -70,8 +79,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   markAllRead: () => set({ unreadCount: 0, lastReadAt: new Date().toISOString() }),
 
-  reset: () =>
+  reset: () => {
+    get().unsubscribeRealtime?.()
     set({
+      unsubscribeRealtime: null,
       messages: [],
       typingUsers: [],
       isTyping: false,
@@ -79,7 +90,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       lastReadAt: null,
       isLoading: false,
       hasError: false,
-    }),
+    })
+  },
 }))
 
 export function useMessages(): ChatMessage[] {
