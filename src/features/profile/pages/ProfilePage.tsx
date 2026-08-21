@@ -73,10 +73,15 @@ export default function ProfilePage() {
       .uploadAvatar(file)
       .then(({ avatarUrl }) => {
         if (profile) {
-          const updated = { ...profile, avatarUrl }
-          setUser(updated)
-          void queryClient.setQueryData(['profile'], updated)
-          toast.success('Profile picture updated')
+          // Persist the new avatar URL to the database so it survives page refreshes
+          profileApi
+            .updateProfile({ avatarUrl })
+            .then((updated) => {
+              setUser(updated)
+              void queryClient.setQueryData(['profile'], updated)
+              toast.success('Profile picture updated')
+            })
+            .catch((err) => toast.error(err.message))
         }
       })
       .catch(() => toast.error('Could not upload image'))
