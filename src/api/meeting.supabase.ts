@@ -214,13 +214,12 @@ export const supabaseMeetingApi = {
     const counts = await fetchParticipantCounts((rooms ?? []).map((r) => r.id))
     return (rooms ?? []).map((r) => toMeeting(r, counts.get(r.id) ?? 0))
   },
-
   async getRecent(): Promise<Meeting[]> {
     const supabase = getSupabase()
     const { data: rooms, error } = await supabase
       .from('rooms')
       .select(ROOM_COLUMNS)
-      .eq('status', 'ended')
+      .in('status', ['live', 'ended'])
       .order('ended_at', { ascending: false })
       .limit(4)
 
