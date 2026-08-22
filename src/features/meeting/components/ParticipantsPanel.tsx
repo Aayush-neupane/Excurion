@@ -158,7 +158,7 @@ function ParticipantRow({
       )}
     >
       <div className="relative shrink-0">
-        <UserAvatar name={p.name} className="h-9 w-9" />
+        <UserAvatar name={p.name} src={p.avatarUrl} className="h-9 w-9" />
         {speaking && (
           <span
             className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-success"

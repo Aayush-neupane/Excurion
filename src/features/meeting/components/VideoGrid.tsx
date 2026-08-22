@@ -37,7 +37,7 @@ export function VideoTile({ participant, index }: { participant: Participant; in
     >
       {cameraOff ? (
         <div className="flex h-full items-center justify-center">
-          <UserAvatar name={participant.name} className="h-16 w-16 sm:h-20 sm:w-20" />
+          <UserAvatar name={participant.name} src={participant.avatarUrl} className="h-16 w-16 sm:h-20 sm:w-20" />
         </div>
       ) : (
         <div className="relative h-full w-full overflow-hidden">

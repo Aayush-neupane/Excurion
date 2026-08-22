@@ -164,7 +164,7 @@ function SidebarContent({ user, onLogout, onNavigate, onUserMenuChange, userMenu
         <DropdownMenu open={userMenuOpen} onOpenChange={onUserMenuChange}>
           <DropdownMenuTrigger asChild>
             <button className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-              <UserAvatar name={user?.name ?? 'Guest'} className="h-9 w-9" />
+              <UserAvatar name={user?.name ?? 'Guest'} src={user?.avatarUrl} className="h-9 w-9" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{user?.name ?? 'Guest'}</span>
                 <span className="block truncate text-xs text-muted-foreground">

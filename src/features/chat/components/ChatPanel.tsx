@@ -219,7 +219,7 @@ function ChatGroup({ group }: { group: ChatGroup }) {
       transition={{ duration: 0.2 }}
       className={`flex items-start gap-2.5 ${isSelf ? 'flex-row-reverse' : ''}`}
     >
-      <UserAvatar name={stripYou(group.authorName)} className="h-8 w-8 shrink-0" />
+      <UserAvatar name={stripYou(group.authorName)} src={group.messages[0]?.authorAvatar} className="h-8 w-8 shrink-0" />
       <div className={`min-w-0 max-w-[85%] ${isSelf ? 'text-right' : ''}`}>
         <div className={`flex items-baseline gap-2 px-1 ${isSelf ? 'flex-row-reverse' : ''}`}>
           <span className="text-xs font-semibold">{stripYou(group.authorName)}</span>

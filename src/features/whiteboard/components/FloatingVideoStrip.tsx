@@ -43,7 +43,7 @@ export function FloatingVideoStrip() {
                 aria-hidden
               />
             ) : (
-              <UserAvatar name={self.name} className="h-8 w-8" />
+              <UserAvatar name={self.name} src={self.avatarUrl} className="h-8 w-8" />
             )}
             <button
               onClick={toggleMic}
@@ -87,7 +87,7 @@ export function FloatingVideoStrip() {
             )}
           >
             {p.camera === 'off' ? (
-              <UserAvatar name={p.name} className="h-7 w-7" />
+              <UserAvatar name={p.name} src={p.avatarUrl} className="h-7 w-7" />
             ) : (
               <div
                 className="absolute inset-0 opacity-40"
