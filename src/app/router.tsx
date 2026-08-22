@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter, Navigate, Outlet } from 'react-router'
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router'
 import { AppLayout } from '@/layouts/AppLayout'
 import { LandingLayout } from '@/layouts/LandingLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
@@ -26,9 +26,13 @@ function withSuspense(node: React.ReactNode) {
 function ProtectedRoute() {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const isHydrating = useUserStore((s) => s.isHydrating)
+  const location = useLocation()
 
   if (isHydrating) return <FullPageLoader label="Restoring session…" />
-  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!isAuthenticated) {
+    const next = encodeURIComponent(location.pathname + location.search)
+    return <Navigate to={`/login?next=${next}`} replace />
+  }
   return <Outlet />
 }
 

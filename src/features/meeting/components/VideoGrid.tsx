@@ -10,12 +10,14 @@ import {
 } from 'lucide-react'
 import type { Participant } from '@/types/meeting'
 import { useMeetingStore } from '@/store/useMeetingStore'
+import { useUserStore } from '@/store/useUserStore'
 import { useSimulatedSpeakers } from '@/hooks'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { cn, initials } from '@/lib/utils'
 
 export function VideoTile({ participant, index }: { participant: Participant; index: number }) {
-  const isSelf = participant.id === 'p-self'
+  const myUserId = useUserStore((s) => s.user?.id)
+  const isSelf = participant.userId !== undefined && participant.userId === myUserId
   const selfCamera = useMeetingStore((s) => s.cameraEnabled)
   const cameraOff = isSelf ? !selfCamera : participant.camera === 'off'
   const micEnabled = isSelf ? useMeetingStore.getState().micEnabled : participant.mic === 'on'
@@ -131,12 +133,13 @@ export function VideoGrid() {
   const view = useMeetingStore((s) => s.view)
   const selfSpeaking = useMeetingStore((s) => s.isSelfSpeaking)
 
-  const speakerIds = participants.filter((p) => p.id !== 'p-self').map((p) => p.id)
+  const speakerIds = participants.filter((p) => !p.screenShare).map((p) => p.id)
   const simulatedSpeakers = useSimulatedSpeakers(speakerIds)
+  const myUserId = useUserStore((s) => s.user?.id)
 
   const enriched = participants.map((p) => ({
     ...p,
-    speaking: p.id === 'p-self' ? selfSpeaking : p.speaking || simulatedSpeakers.has(p.id),
+    speaking: p.userId === myUserId ? selfSpeaking : p.speaking || simulatedSpeakers.has(p.id),
   }))
 
   const people = enriched.filter((p) => !p.screenShare)

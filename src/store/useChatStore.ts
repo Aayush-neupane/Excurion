@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { ChatMessage, TypingState } from '@/types/chat'
 import { chatApi } from '@/api/chat.api'
+import { useUserStore } from '@/store/useUserStore'
 
 interface ChatState {
   messages: ChatMessage[]
@@ -38,7 +39,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const unsubscribe = await chatApi.subscribeMessages(meetingId, (message) => {
         const state = get()
         if (state.messages.some((m) => m.id === message.id)) return
-        set({ messages: [...state.messages, message], unreadCount: state.unreadCount + 1 })
+        const mine = message.authorId === useUserStore.getState().user?.id
+        set({
+          messages: [...state.messages, message],
+          unreadCount: mine ? state.unreadCount : state.unreadCount + 1,
+        })
       })
       set({ unsubscribeRealtime: unsubscribe })
     } catch {

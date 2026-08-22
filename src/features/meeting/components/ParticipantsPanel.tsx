@@ -97,7 +97,7 @@ export function ParticipantsPanel() {
               <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                 Host
               </p>
-              <ParticipantRow participant={host} isSelf={host.id === 'p-self'} simulatedSpeaking={simulated.has(host.id)} />
+              <ParticipantRow participant={host} isSelf={host.userId !== undefined && host.userId === userId} simulatedSpeaking={simulated.has(host.id)} />
             </>
           )}
           <p className="px-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
@@ -108,7 +108,7 @@ export function ParticipantsPanel() {
               key={p.id}
               participant={p}
               index={i}
-              isSelf={p.id === 'p-self'}
+              isSelf={p.userId !== undefined && p.userId === userId}
               simulatedSpeaking={simulated.has(p.id)}
               onLowerHand={isHost ? () => lowerHand(p.id) : undefined}
               onPromote={isHost && p.userId !== userId ? () => void promote(p) : undefined}

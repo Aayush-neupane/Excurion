@@ -34,6 +34,10 @@ export interface MeetingApi {
   leaveRoom(meetingId: string): Promise<void>
   endRoom(meetingId: string): Promise<void>
   heartbeat(meetingId: string): Promise<void>
+  updateMediaState(
+    meetingId: string,
+    patch: { mic?: string; camera?: string; screenShare?: boolean; raisedHand?: boolean },
+  ): Promise<void>
   promoteHost(roomId: string, targetUserId: string): Promise<void>
   removeParticipant(participantId: string, roomId: string): Promise<void>
   subscribeRoster(
@@ -158,6 +162,10 @@ export const mockMeetingApi: MeetingApi = {
 
   async heartbeat() {
     return mockResult(undefined, 100)
+  },
+
+  async updateMediaState() {
+    return mockResult(undefined, 80)
   },
 
   async promoteHost(roomId, _targetUserId) {

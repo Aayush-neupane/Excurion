@@ -402,6 +402,21 @@ export const supabaseMeetingApi = {
     if (error) throw new Error(mapErrors(error.message))
   },
 
+  async updateMediaState(
+    meetingId: string,
+    patch: { mic?: 'on' | 'off'; camera?: 'on' | 'off'; screenShare?: boolean; raisedHand?: boolean },
+  ): Promise<void> {
+    const supabase = getSupabase()
+    const user = (await supabase.auth.getUser()).data.user
+    if (!user) return
+    const { error } = await supabase
+      .from('participants')
+      .update(patch as never)
+      .eq('room_id', meetingId)
+      .eq('user_id', user.id)
+    if (error) throw new Error(error.message)
+  },
+
   async heartbeat(meetingId: string): Promise<void> {
     const supabase = getSupabase()
     const user = (await supabase.auth.getUser()).data.user

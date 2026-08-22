@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useMutation } from '@tanstack/react-query'
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { toast } from 'sonner'
@@ -12,6 +12,7 @@ import { Spinner } from '@/components/common/LoadingState'
 export default function LoginPage() {
   const login = useUserStore((s) => s.login)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -20,7 +21,7 @@ export default function LoginPage() {
     mutationFn: () => login(email, password),
     onSuccess: () => {
       toast.success('Welcome back!')
-      navigate('/app', { replace: true })
+      navigate(searchParams.get('next') ?? '/app', { replace: true })
     },
     onError: (error: Error) => {
       toast.error(error.message)
