@@ -328,8 +328,11 @@ export const supabaseMeetingApi = {
     } as never)
 
     if (error) throw new Error(mapErrors(error.message))
-    const rows = roomData as unknown as RoomRow[]
-    const room = rows[0]
+    // create_room RETURNS public.rooms — PostgREST yields a single object
+    // (not an array like join_room's SETOF), so handle both shapes.
+    const room = (
+      Array.isArray(roomData) ? (roomData as RoomRow[])[0] : (roomData as unknown as RoomRow)
+    ) as RoomRow | undefined
     if (!room) throw new Error('Room could not be created.')
 
     const { data: participants } = await supabase
