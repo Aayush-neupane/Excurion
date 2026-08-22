@@ -451,17 +451,55 @@ export const supabaseMeetingApi = {
   async getLiveRoomsByHost(hostId: string): Promise<Meeting[]> {
     if (!hostId) return []
     const supabase = getSupabase()
-    const { data: rooms, error } = await supabase
-      .from('rooms')
-      .select(ROOM_COLUMNS)
-      .eq('host_id', hostId)
-      .eq('status', 'live')
-      .is('deleted_at', null)
-      .order('started_at', { ascending: false })
-      .limit(5)
+    // SECURITY DEFINER RPC — immune to RLS drift.
+    // (Bypasses stale generated DB types until they are regenerated.)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('list_live_rooms_by_host', { p_host: hostId })
     if (error) throw new Error(error.message)
-    const counts = await fetchParticipantCounts((rooms ?? []).map((r) => r.id))
-    return (rooms ?? []).map((r) => toMeeting(r, counts.get(r.id) ?? 0))
+    return ((data ?? []) as Array<{ id: string; title: string; started_at: string | null; participant_count: number }>).map(
+      (row) => ({
+        id: row.id,
+        title: row.title,
+        type: 'class',
+        status: 'live',
+        roomCode: '',
+        hostId,
+        participants: Number(row.participant_count ?? 0),
+        startedAt: row.started_at ?? undefined,
+      }),
+    )
+  },
+
+  async inviteToRoom(roomId: string, email: string): Promise<void> {
+    const supabase = getSupabase()
+    const normalized = email.trim().toLowerCase()
+    const me = (await supabase.auth.getUser()).data.user
+    if (!me) throw new Error('You are not signed in.')
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('email', normalized)
+      .maybeSingle()
+
+    const payload = {
+      room_id: roomId,
+      invited_email: normalized,
+      ...(profile ? { invited_user_id: profile.id } : {}),
+      created_by: me.id,
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from('room_invites').insert(payload)
+
+    if (error) {
+      if (error.message.includes('duplicate key')) {
+        throw new Error('That email is already invited to this room.')
+      }
+      if (error.message.includes('email_format')) {
+        throw new Error('That does not look like a valid email address.')
+      }
+      throw new Error(error.message)
+    }
   },
 
   /** Live room-row updates; used to detect 'the host disbanded the class'. */

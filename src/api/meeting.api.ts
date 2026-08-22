@@ -49,6 +49,7 @@ export interface MeetingApi {
     handlers: { onUpdated: (meeting: Meeting) => void },
   ): Promise<() => void>
   getLiveRoomsByHost(hostId: string): Promise<Meeting[]>
+  inviteToRoom(roomId: string, email: string): Promise<void>
 }
 
 export const mockMeetingApi: MeetingApi = {
@@ -194,6 +195,10 @@ export const mockMeetingApi: MeetingApi = {
   async getLiveRoomsByHost(hostId) {
     const live = mockMeetings.filter((m) => m.hostId === hostId && m.status === 'live').slice(0, 5)
     return mockResult(live, 300)
+  },
+
+  async inviteToRoom() {
+    return mockResult(undefined, 400)
   },
 }
 

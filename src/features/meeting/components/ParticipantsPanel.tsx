@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
-import { Hand, Mic, MicOff, Video, VideoOff, Crown, X, UserPlus, LogOut } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { Hand, Mic, MicOff, Video, VideoOff, Crown, X, UserPlus, LogOut, MailPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { meetingApi } from '@/api/meeting.api'
 import { ParticipantProfileDialog } from '@/features/meeting/components/ParticipantProfileDialog'
@@ -11,13 +11,18 @@ import { useSimulatedSpeakers } from '@/hooks'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { ConnectionBadge } from '@/components/common/ConnectionBadge'
 import { cn } from '@/lib/utils'
+import { Spinner } from '@/components/common/LoadingState'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 
 export function ParticipantsPanel() {
   const participants = useMeetingStore((s) => s.participants)
   const [profileUserId, setProfileUserId] = useState<string | null>(null)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
   const setSidebar = useMeetingStore((s) => s.setSidebar)
   const setParticipants = useMeetingStore((s) => s.setParticipants)
   const setSidebarNull = () => setSidebar(null)
@@ -50,6 +55,21 @@ export function ParticipantsPanel() {
       toast.success(`${participant.name} is now the host.`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Could not promote participant.')
+    }
+  }
+
+  const sendInvite = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!meeting || !inviteEmail.trim()) return
+    setInviting(true)
+    try {
+      await meetingApi.inviteToRoom(meeting.id, inviteEmail.trim())
+      toast.success(`Invitation saved for ${inviteEmail.trim().toLowerCase()} — they can now join this private room.`)
+      setInviteEmail('')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not save the invitation.')
+    } finally {
+      setInviting(false)
     }
   }
 
@@ -91,6 +111,28 @@ export function ParticipantsPanel() {
             {raisedHands.length} hand{raisedHands.length > 1 ? 's' : ''} raised
           </p>
         </div>
+      )}
+
+      {isHost && (
+        <form onSubmit={sendInvite} className="shrink-0 border-b border-border p-3">
+          <Label htmlFor="invite-email" className="mb-1.5 block text-[11px] font-medium text-muted-foreground">
+            Invite by email (private rooms)
+          </Label>
+          <div className="flex gap-1.5">
+            <Input
+              id="invite-email"
+              type="email"
+              placeholder="student@school.edu"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              className="h-8 text-xs"
+            />
+            <Button type="submit" size="sm" variant="outline" className="h-8 gap-1 px-2.5 text-xs" disabled={inviting || !inviteEmail.trim()}>
+              {inviting ? <Spinner /> : <MailPlus className="h-3.5 w-3.5" />}
+              Invite
+            </Button>
+          </div>
+        </form>
       )}
 
       <ScrollArea className="flex-1">
