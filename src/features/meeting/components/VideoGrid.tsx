@@ -41,7 +41,7 @@ export function VideoTile({ participant, index }: { participant: Participant; in
         </div>
       ) : (
         <div className="relative h-full w-full overflow-hidden">
-          <SimulatedVideo name={participant.name} />
+          <SimulatedVideo name={participant.name} src={participant.avatarUrl} />
           {isSelf && (
             <span className="absolute bottom-2 right-2 rounded-md bg-black/50 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white/80 backdrop-blur-sm">
               You
@@ -109,7 +109,7 @@ export function VideoTile({ participant, index }: { participant: Participant; in
   )
 }
 
-function SimulatedVideo({ name }: { name: string }) {
+function SimulatedVideo({ name, src }: { name: string; src?: string }) {
   return (
     <>
       <div
@@ -119,11 +119,20 @@ function SimulatedVideo({ name }: { name: string }) {
         }}
         aria-hidden
       />
-      <div className="relative flex h-full w-full items-center justify-center">
-        <span className="text-4xl font-bold tracking-wide text-white/85" aria-hidden>
-          {initials(name)}
-        </span>
-      </div>
+      {src ? (
+        <img
+          src={src}
+          alt={name}
+          className="absolute inset-0 h-full w-full object-cover"
+          draggable={false}
+        />
+      ) : (
+        <div className="relative flex h-full w-full items-center justify-center">
+          <span className="text-4xl font-bold tracking-wide text-white/85" aria-hidden>
+            {initials(name)}
+          </span>
+        </div>
+      )}
     </>
   )
 }

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Hand, Mic, MicOff } from 'lucide-react'
 import { useMeetingStore } from '@/store/useMeetingStore'
+import { useUserStore } from '@/store/useUserStore'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { cn } from '@/lib/utils'
 
@@ -14,9 +15,10 @@ export function FloatingVideoStrip() {
   const cameraEnabled = useMeetingStore((s) => s.cameraEnabled)
   const toggleMic = useMeetingStore((s) => s.toggleMic)
   const toggleCamera = useMeetingStore((s) => s.toggleCamera)
+  const myUserId = useUserStore((s) => s.user?.id)
 
-  const self = participants.find((p) => p.id === 'p-self')
-  const others = participants.filter((p) => p.id !== 'p-self').slice(0, 3)
+  const self = participants.find((p) => p.userId === myUserId)
+  const others = participants.filter((p) => p.userId !== myUserId).slice(0, 3)
 
   return (
     <div className="pointer-events-none absolute bottom-3 right-3 z-10 flex gap-2">
@@ -37,11 +39,21 @@ export function FloatingVideoStrip() {
             )}
           >
             {cameraEnabled ? (
-              <div
-                className="absolute inset-0 opacity-40"
-                style={{ background: 'linear-gradient(135deg, hsl(245 30% 32%), hsl(210 28% 24%))' }}
-                aria-hidden
-              />
+              <>
+                <div
+                  className="absolute inset-0 opacity-40"
+                  style={{ background: 'linear-gradient(135deg, hsl(245 30% 32%), hsl(210 28% 24%))' }}
+                  aria-hidden
+                />
+                {self.avatarUrl && (
+                  <img
+                    src={self.avatarUrl}
+                    alt={self.name}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    draggable={false}
+                  />
+                )}
+              </>
             ) : (
               <UserAvatar name={self.name} src={self.avatarUrl} className="h-8 w-8" />
             )}
@@ -89,13 +101,23 @@ export function FloatingVideoStrip() {
             {p.camera === 'off' ? (
               <UserAvatar name={p.name} src={p.avatarUrl} className="h-7 w-7" />
             ) : (
-              <div
-                className="absolute inset-0 opacity-40"
-                style={{
-                  background: `linear-gradient(135deg, hsl(${(p.name.length * 37) % 360} 30% 30%), hsl(${(p.name.length * 47 + 60) % 360} 26% 22%))`,
-                }}
-                aria-hidden
-              />
+              <>
+                <div
+                  className="absolute inset-0 opacity-40"
+                  style={{
+                    background: `linear-gradient(135deg, hsl(${(p.name.length * 37) % 360} 30% 30%), hsl(${(p.name.length * 47 + 60) % 360} 26% 22%))`,
+                  }}
+                  aria-hidden
+                />
+                {p.avatarUrl && (
+                  <img
+                    src={p.avatarUrl}
+                    alt={p.name}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    draggable={false}
+                  />
+                )}
+              </>
             )}
             {p.raisedHand && (
               <span className="absolute right-1 top-1 rounded-full bg-warning p-0.5 text-warning-foreground" aria-label="Hand raised">
