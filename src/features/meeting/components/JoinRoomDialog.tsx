@@ -32,15 +32,26 @@ export function JoinRoomDialog() {
   const closeDialog = useUIStore((s) => s.closeDialog)
   const navigate = useNavigate()
   const [code, setCode] = useState('')
+  const [password, setPassword] = useState('')
+  const [needsPassword, setNeedsPassword] = useState(false)
 
   const mutation = useMutation({
-    mutationFn: () => meetingApi.joinRoom({ roomCode: code }),
+    mutationFn: () => meetingApi.joinRoom({ roomCode: code, password: needsPassword ? password : undefined }),
     onSuccess: (result) => {
       closeDialog('join-room')
       setCode('')
+      setPassword('')
+      setNeedsPassword(false)
       navigate(`/meeting/${result.meeting.id}`)
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => {
+      if (error.message.includes('password-protected')) {
+        setNeedsPassword(true)
+        toast.info('This room is protected — enter its password.')
+        return
+      }
+      toast.error(error.message)
+    },
   })
 
   const handleSubmit = (e: FormEvent) => {
@@ -84,6 +95,26 @@ export function JoinRoomDialog() {
               Codes look like <span className="font-mono">abcd-1234-ef56</span>.
             </p>
           </div>
+
+          {needsPassword && (
+            <div className="space-y-2">
+              <Label htmlFor="join-password">Room password</Label>
+              <div className="relative">
+                <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                <Input
+                  id="join-password"
+                  type="password"
+                  autoComplete="off"
+                  placeholder="Room password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-9"
+                  autoFocus
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => closeDialog('join-room')}>

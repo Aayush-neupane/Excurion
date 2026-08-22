@@ -24,6 +24,7 @@ interface RoomRow {
   started_at: string | null
   ended_at: string | null
   created_at: string
+  join_password?: string | null
 }
 
 const STALE_AFTER_MS = 95_000
@@ -152,6 +153,10 @@ function mapErrors(message: string): string {
       return 'This room is full. Please try again later.'
     case 'NOT_HOST':
       return 'Only the host can do this.'
+    case 'ROOM_PASSWORD_REQUIRED':
+      return 'This room is password-protected. Enter the password to join.'
+    case 'ROOM_PASSWORD_WRONG':
+      return 'Wrong password. Check with the host and try again.'
     case 'Database error saving new client':
       return 'Something went wrong joining the room. Please try again.'
     default:
@@ -321,10 +326,11 @@ export const supabaseMeetingApi = {
       p_description: input.description ?? null,
       p_type: input.type,
       p_subject: input.subject ?? null,
-      p_privacy: 'private',
       p_scheduled_at: input.scheduledAt ?? null,
       p_duration_minutes: input.duration ?? null,
       p_participant_limit: 100,
+      p_join_password: input.joinPassword?.trim() || null,
+      p_privacy: input.privacy ?? 'private',
     } as never)
 
     if (error) throw new Error(mapErrors(error.message))
@@ -362,9 +368,12 @@ export const supabaseMeetingApi = {
     return toMeeting(room, counts.get(room.id) ?? 0)
   },
 
-  async joinRoom({ roomCode }: JoinMeetingInput): Promise<JoinRoomResult> {
+  async joinRoom({ roomCode, password }: JoinMeetingInput): Promise<JoinRoomResult> {
     const supabase = getSupabase()
-    const { data: roomsData, error } = await supabase.rpc('join_room', { p_code: roomCode.trim().toLowerCase() })
+    const { data: roomsData, error } = await supabase.rpc('join_room', {
+      p_code: roomCode.trim().toLowerCase(),
+      p_password: password?.trim() || null,
+    } as never)
     if (error) throw new Error(mapErrors(error.message))
 
     const room = (roomsData as unknown as RoomRow[])[0]
@@ -437,6 +446,22 @@ export const supabaseMeetingApi = {
 
   async removeParticipant(participantId: string, roomId: string): Promise<void> {
     await processMeetingAction(roomId, 'remove-participant', participantId)
+  },
+
+  async getLiveRoomsByHost(hostId: string): Promise<Meeting[]> {
+    if (!hostId) return []
+    const supabase = getSupabase()
+    const { data: rooms, error } = await supabase
+      .from('rooms')
+      .select(ROOM_COLUMNS)
+      .eq('host_id', hostId)
+      .eq('status', 'live')
+      .is('deleted_at', null)
+      .order('started_at', { ascending: false })
+      .limit(5)
+    if (error) throw new Error(error.message)
+    const counts = await fetchParticipantCounts((rooms ?? []).map((r) => r.id))
+    return (rooms ?? []).map((r) => toMeeting(r, counts.get(r.id) ?? 0))
   },
 
   /** Live room-row updates; used to detect 'the host disbanded the class'. */

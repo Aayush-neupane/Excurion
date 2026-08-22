@@ -28,11 +28,14 @@ export interface CreateMeetingInput {
   subject?: string
   scheduledAt?: string
   duration?: number
+  privacy?: 'public' | 'private'
+  joinPassword?: string
 }
 
 export interface JoinMeetingInput {
   roomCode: string
   displayName?: string
+  password?: string
 }
 
 export interface ParticipantMedia {

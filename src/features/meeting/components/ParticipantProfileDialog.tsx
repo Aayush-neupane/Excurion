@@ -1,6 +1,7 @@
+import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Briefcase, Clock, Mail, GraduationCap } from 'lucide-react'
-import { profileApi } from '@/api'
+import { Briefcase, Clock, Mail, GraduationCap, Radio } from 'lucide-react'
+import { meetingApi, profileApi } from '@/api'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -22,6 +23,12 @@ export function ParticipantProfileDialog({
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile', userId],
     queryFn: () => profileApi.getProfileById(userId!),
+    enabled: !!userId,
+  })
+
+  const { data: liveRooms } = useQuery({
+    queryKey: ['live-rooms-by-host', userId],
+    queryFn: () => meetingApi.getLiveRoomsByHost(userId!),
     enabled: !!userId,
   })
 
@@ -74,6 +81,33 @@ export function ParticipantProfileDialog({
             {profile.bio && (
               <div className="rounded-lg border border-border bg-muted/40 p-3">
                 <p className="text-sm leading-relaxed text-foreground/90">{profile.bio}</p>
+              </div>
+            )}
+
+            {!!liveRooms?.length && (
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+                  Ongoing classes
+                </p>
+                {liveRooms.map((room) => (
+                  <Link
+                    key={room.id}
+                    to={`/meeting/${room.id}`}
+                    className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-2 transition-colors hover:bg-accent"
+                  >
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-60" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
+                    </span>
+                    <Radio className="h-3.5 w-3.5 shrink-0 text-destructive" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{room.title}</span>
+                    {room.participants > 0 && (
+                      <span className="shrink-0 text-[11px] text-muted-foreground">
+                        {room.participants} in room
+                      </span>
+                    )}
+                  </Link>
+                ))}
               </div>
             )}
 

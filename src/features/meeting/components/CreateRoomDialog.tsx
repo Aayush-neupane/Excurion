@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation } from '@tanstack/react-query'
-import { Clock, Presentation, Users } from 'lucide-react'
+import { Clock, Globe, KeyRound, Link2, Presentation, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import type { MeetingType } from '@/types/meeting'
 import { meetingApi } from '@/api'
@@ -34,9 +34,17 @@ export function CreateRoomDialog() {
 
   const [title, setTitle] = useState('')
   const [type, setType] = useState<MeetingType>('class')
+  const [access, setAccess] = useState<'invite' | 'code' | 'password'>('invite')
+  const [password, setPassword] = useState('')
 
   const mutation = useMutation({
-    mutationFn: () => meetingApi.createRoom({ title, type }),
+    mutationFn: () =>
+      meetingApi.createRoom({
+        title,
+        type,
+        privacy: access === 'code' ? 'public' : 'private',
+        joinPassword: access === 'password' ? password : undefined,
+      }),
     onSuccess: (result) => {
       closeDialog('create-room')
       setTitle('')
@@ -49,6 +57,10 @@ export function CreateRoomDialog() {
     e.preventDefault()
     if (!title.trim()) {
       toast.error('Give your room a title first.')
+      return
+    }
+    if (access === 'password' && password.trim().length < 4) {
+      toast.error('Set a password of at least 4 characters.')
       return
     }
     mutation.mutate()
@@ -102,6 +114,60 @@ export function CreateRoomDialog() {
                 </button>
               ))}
             </div>
+          </fieldset>
+
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium">Who can join?</legend>
+            <div className="space-y-1.5">
+              {(
+                [
+                  { value: 'invite', label: 'Invite only', icon: Link2, hint: 'Only people you share the code with' },
+                  { value: 'code', label: 'Anyone with the code', icon: Globe, hint: 'Code works for everyone' },
+                  { value: 'password', label: 'Password required', icon: KeyRound, hint: 'Code + password to enter' },
+                ] as const
+              ).map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setAccess(option.value)}
+                  aria-pressed={access === option.value}
+                  className={cn(
+                    'flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 text-left transition-all',
+                    access === option.value
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:bg-accent',
+                  )}
+                >
+                  <option.icon
+                    className={cn(
+                      'h-4 w-4 shrink-0',
+                      access === option.value ? 'text-primary' : 'text-muted-foreground',
+                    )}
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium">{option.label}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{option.hint}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+            {access === 'password' && (
+              <div className="pt-1">
+                <Label htmlFor="room-password">Room password</Label>
+                <Input
+                  id="room-password"
+                  type="text"
+                  autoComplete="off"
+                  minLength={4}
+                  maxLength={72}
+                  placeholder="Share this only with your class"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1.5"
+                  required
+                />
+              </div>
+            )}
           </fieldset>
 
           <DialogFooter>
