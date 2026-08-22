@@ -4,8 +4,11 @@ import { mockResult } from './client'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { supabaseProfileApi } from './profile.supabase'
 
+import { getUserById } from '@/data/users'
+
 export interface ProfileApi {
   getProfile(): Promise<User>
+  getProfileById(id: string): Promise<User | null>
   updateProfile(input: ProfileUpdate): Promise<User>
   uploadAvatar(file: File): Promise<{ avatarUrl: string }>
 }
@@ -13,6 +16,10 @@ export interface ProfileApi {
 export const mockProfileApi: ProfileApi = {
   async getProfile() {
     return mockResult(currentUser, 400)
+  },
+
+  async getProfileById(id) {
+    return mockResult(getUserById(id) ?? null, 300)
   },
 
   async updateProfile(input) {

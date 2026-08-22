@@ -46,6 +46,17 @@ export const supabaseProfileApi = {
     return profileToUser(data)
   },
 
+  async getProfileById(id: string): Promise<User | null> {
+    const supabase = getSupabase()
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(PROFILE_COLUMNS)
+      .eq('id', id)
+      .maybeSingle()
+    if (error) throw new Error(error.message)
+    return data ? profileToUser(data) : null
+  },
+
   async updateProfile(input: ProfileUpdate): Promise<User> {
     const supabase = getSupabase()
     const user = (await supabase.auth.getUser()).data.user

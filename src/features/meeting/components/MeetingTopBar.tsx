@@ -1,17 +1,27 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router'
 import { motion } from 'framer-motion'
-import { Check, Copy, PhoneOff, Projector, Radio, Wifi, WifiOff } from 'lucide-react'
+import { Check, Copy, PhoneOff, Projector, Radio, Wifi, WifiOff, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStopwatch, useOnlineStatus } from '@/hooks'
 import { formatDuration } from '@/lib/utils'
 import { meetingApi } from '@/api'
 import { useUIStore } from '@/store/useUIStore'
 import { useMeetingStore } from '@/store/useMeetingStore'
+import { useUserStore } from '@/store/useUserStore'
 import { useWhiteboardStore } from '@/store/useWhiteboardStore'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 
 export function MeetingTopBar() {
@@ -21,6 +31,23 @@ export function MeetingTopBar() {
   const elapsed = useStopwatch(true)
   const whiteboardOpen = useWhiteboardStore((s) => s.isOpen)
   const [copied, setCopied] = useState(false)
+  const [disbandOpen, setDisbandOpen] = useState(false)
+  const navigate = useNavigate()
+  const myUserId = useUserStore((s) => s.user?.id)
+  const isHost = !!meeting && meeting.hostId === myUserId
+
+  const disband = useMutation({
+    mutationFn: () => meetingApi.endRoom(meeting!.id),
+    onSuccess: () => {
+      setDisbandOpen(false)
+      toast.success('Class disbanded. Everyone has been asked to leave.')
+      navigate('/app', { replace: true })
+    },
+    onError: (error: Error) => {
+      setDisbandOpen(false)
+      toast.error(error.message)
+    },
+  })
 
   const { data: hostName } = useQuery({
     queryKey: ['meeting-host', meeting?.id],
@@ -45,7 +72,7 @@ export function MeetingTopBar() {
         <div className="min-w-0">
           <h1 className="truncate text-sm font-semibold leading-tight">{meeting.title}</h1>
           <p className="hidden truncate text-[11px] text-muted-foreground sm:block">
-            {hostName} · {meeting.roomCode}
+            Hosted by {hostName} · code {meeting.roomCode}
           </p>
         </div>
       </div>
@@ -119,6 +146,18 @@ export function MeetingTopBar() {
 
         <Separator orientation="vertical" className="mx-1 hidden h-6 sm:block" />
 
+        {isHost && meeting.status === 'live' && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => setDisbandOpen(true)}
+          >
+            <XCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Disband</span>
+          </Button>
+        )}
+
         <Button
           variant="destructive"
           size="sm"
@@ -129,6 +168,29 @@ export function MeetingTopBar() {
           <span className="hidden sm:inline">Leave</span>
         </Button>
       </div>
+
+      <Dialog open={disbandOpen} onOpenChange={setDisbandOpen}>
+        <DialogContent className="sm:max-w-sm" aria-describedby="disband-desc">
+          <DialogHeader>
+            <DialogTitle>Disband this class?</DialogTitle>
+            <DialogDescription id="disband-desc">
+              The room ends immediately for everyone, including you. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDisbandOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={disband.isPending}
+              onClick={() => disband.mutate()}
+            >
+              {disband.isPending ? 'Disbanding…' : 'Disband class'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.header>
   )
 }

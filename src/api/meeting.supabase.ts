@@ -439,6 +439,28 @@ export const supabaseMeetingApi = {
     await processMeetingAction(roomId, 'remove-participant', participantId)
   },
 
+  /** Live room-row updates; used to detect 'the host disbanded the class'. */
+  async subscribeRoom(
+    roomId: string,
+    handlers: { onUpdated: (meeting: Meeting) => void },
+  ): Promise<() => void> {
+    const supabase = getSupabase()
+    const channel = supabase
+      .channel(`room-${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
+        (payload) => {
+          handlers.onUpdated(toMeeting(payload.new as RoomRow, 0))
+        },
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  },
+
   /** Live roster: fires on any participant change; signals when I'm removed. */
   async subscribeRoster(
     roomId: string,

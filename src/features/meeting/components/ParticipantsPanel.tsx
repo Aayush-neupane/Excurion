@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { Hand, Mic, MicOff, Video, VideoOff, Crown, X, UserPlus, LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 import { meetingApi } from '@/api/meeting.api'
+import { ParticipantProfileDialog } from '@/features/meeting/components/ParticipantProfileDialog'
 import type { Participant } from '@/types/meeting'
 import { useMeetingStore } from '@/store/useMeetingStore'
 import { useUserStore } from '@/store/useUserStore'
@@ -15,6 +17,7 @@ import { Badge } from '@/components/ui/badge'
 
 export function ParticipantsPanel() {
   const participants = useMeetingStore((s) => s.participants)
+  const [profileUserId, setProfileUserId] = useState<string | null>(null)
   const setSidebar = useMeetingStore((s) => s.setSidebar)
   const setParticipants = useMeetingStore((s) => s.setParticipants)
   const setSidebarNull = () => setSidebar(null)
@@ -97,7 +100,12 @@ export function ParticipantsPanel() {
               <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                 Host
               </p>
-              <ParticipantRow participant={host} isSelf={host.userId !== undefined && host.userId === userId} simulatedSpeaking={simulated.has(host.id)} />
+              <ParticipantRow
+                participant={host}
+                isSelf={host.userId !== undefined && host.userId === userId}
+                simulatedSpeaking={simulated.has(host.id)}
+                onOpenProfile={host.userId ? () => setProfileUserId(host.userId!) : undefined}
+              />
             </>
           )}
           <p className="px-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
@@ -113,6 +121,7 @@ export function ParticipantsPanel() {
               onLowerHand={isHost ? () => lowerHand(p.id) : undefined}
               onPromote={isHost && p.userId !== userId ? () => void promote(p) : undefined}
               onRemove={isHost && p.userId !== userId ? () => void remove(p) : undefined}
+              onOpenProfile={p.userId ? () => setProfileUserId(p.userId!) : undefined}
             />
           ))}
           {others.length === 0 && (
@@ -122,6 +131,8 @@ export function ParticipantsPanel() {
           )}
         </div>
       </ScrollArea>
+
+      <ParticipantProfileDialog userId={profileUserId} onClose={() => setProfileUserId(null)} />
     </section>
   )
 }
@@ -134,6 +145,7 @@ function ParticipantRow({
   onLowerHand,
   onPromote,
   onRemove,
+  onOpenProfile,
 }: {
   participant: Participant
   isSelf: boolean
@@ -142,6 +154,7 @@ function ParticipantRow({
   onLowerHand?: () => void
   onPromote?: () => void
   onRemove?: () => void
+  onOpenProfile?: () => void
 }) {
   const p = participant
 
@@ -157,7 +170,13 @@ function ParticipantRow({
         speaking && 'bg-primary/5',
       )}
     >
-      <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={onOpenProfile}
+        disabled={!onOpenProfile}
+        className={`relative shrink-0 rounded-full ${onOpenProfile ? 'cursor-pointer transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring' : 'cursor-default'}`}
+        aria-label={`View ${p.name}'s profile`}
+      >
         <UserAvatar name={p.name} src={p.avatarUrl} className="h-9 w-9" />
         {speaking && (
           <span
@@ -173,7 +192,7 @@ function ParticipantRow({
             <Hand className="h-3 w-3" />
           </span>
         )}
-      </div>
+      </button>
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium leading-tight">

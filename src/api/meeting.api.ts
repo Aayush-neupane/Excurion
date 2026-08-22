@@ -44,6 +44,10 @@ export interface MeetingApi {
     roomId: string,
     handlers: { onRosterChange: () => void; onSelfRemoved: () => void },
   ): Promise<() => void>
+  subscribeRoom(
+    roomId: string,
+    handlers: { onUpdated: (meeting: Meeting) => void },
+  ): Promise<() => void>
 }
 
 export const mockMeetingApi: MeetingApi = {
@@ -179,6 +183,10 @@ export const mockMeetingApi: MeetingApi = {
   },
 
   async subscribeRoster() {
+    return mockResult(() => {}, 50)
+  },
+
+  async subscribeRoom() {
     return mockResult(() => {}, 50)
   },
 }

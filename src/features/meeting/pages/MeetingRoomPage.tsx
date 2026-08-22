@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { useUserStore } from '@/store/useUserStore'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { meetingApi } from '@/api/meeting.api'
@@ -74,11 +75,63 @@ export default function MeetingRoomPage() {
         unsubscribeRoster = unsubscribe
       })
 
+    // Broadcast: when anyone (host or auto-disband) ends the room, everyone leaves.
+    let unsubscribeRoom = () => {}
+    meetingApi
+      .subscribeRoom(meetingId, {
+        onUpdated: (updated) => {
+          const store = useMeetingStore.getState()
+          if (store.meeting?.id === updated.id) store.setMeeting(updated)
+          if (updated.status === 'ended' && store.isInMeeting) {
+            toast.info('This class was disbanded by the host.')
+            store
+              .leave()
+              .catch(() => {})
+              .finally(() => navigate('/app', { replace: true }))
+          }
+        },
+      })
+      .then((unsubscribe) => {
+        unsubscribeRoom = unsubscribe
+      })
+
     return () => {
       clearInterval(heartbeat)
       unsubscribeRoster()
+      unsubscribeRoom()
     }
   }, [meetingId, navigate])
+
+  // Auto-disband: host alone (roster < 2) for 5 straight minutes ends the class.
+  const participantCount = useMeetingStore((s) => s.participants.length)
+  const meetingStatus = useMeetingStore((s) => s.meeting?.status)
+  const meetingHostId = useMeetingStore((s) => s.meeting?.hostId)
+  const myUserId = useUserStore((s) => s.user?.id)
+
+  useEffect(() => {
+    const m = useMeetingStore.getState().meeting
+    if (!meetingId || !isInMeeting || !m || !myUserId) return
+    if (m.hostId !== myUserId || m.status !== 'live') return
+
+    let timer: number | undefined
+    if (participantCount < 2) {
+      timer = window.setTimeout(() => {
+        const current = useMeetingStore.getState()
+        if (!current.isInMeeting || (current.participants.length >= 2)) return
+        void meetingApi
+          .endRoom(meetingId)
+          .then(() => {
+            toast.info('Class disbanded — it was empty (just you) for over 5 minutes.')
+            return current.leave()
+          })
+          .catch(() => {})
+          .finally(() => navigate('/app', { replace: true }))
+      }, 5 * 60 * 1000)
+    }
+    return () => {
+      if (timer !== undefined) clearTimeout(timer)
+    }
+  }, [participantCount, isInMeeting, meetingStatus, meetingHostId, myUserId, meetingId, navigate])
 
   useEffect(() => {
     return () => {

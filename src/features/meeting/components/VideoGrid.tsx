@@ -10,12 +10,22 @@ import {
 } from 'lucide-react'
 import type { Participant } from '@/types/meeting'
 import { useMeetingStore } from '@/store/useMeetingStore'
+import { useState } from 'react'
 import { useUserStore } from '@/store/useUserStore'
+import { ParticipantProfileDialog } from '@/features/meeting/components/ParticipantProfileDialog'
 import { useSimulatedSpeakers } from '@/hooks'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { cn, initials } from '@/lib/utils'
 
-export function VideoTile({ participant, index }: { participant: Participant; index: number }) {
+export function VideoTile({
+  participant,
+  index,
+  onOpenProfile,
+}: {
+  participant: Participant
+  index: number
+  onOpenProfile?: (userId: string) => void
+}) {
   const myUserId = useUserStore((s) => s.user?.id)
   const isSelf = participant.userId !== undefined && participant.userId === myUserId
   const selfCamera = useMeetingStore((s) => s.cameraEnabled)
@@ -73,9 +83,19 @@ export function VideoTile({ participant, index }: { participant: Participant; in
           ) : (
             <Video className="h-3.5 w-3.5 text-white/70" aria-hidden />
           )}
-          <span className="max-w-28 truncate font-medium sm:max-w-40">
+          <button
+            type="button"
+            onClick={
+              !isSelf && participant.userId && onOpenProfile
+                ? () => onOpenProfile(participant.userId!)
+                : undefined
+            }
+            disabled={!(!isSelf && participant.userId && onOpenProfile)}
+            className={`max-w-28 truncate font-medium sm:max-w-40 ${!isSelf && participant.userId && onOpenProfile ? 'cursor-pointer hover:underline' : 'cursor-default'}`}
+            title={!isSelf && participant.userId ? 'View profile' : undefined}
+          >
             {isSelf ? `${participant.name.replace(' (You)', '')} (You)` : participant.name}
-          </span>
+          </button>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
           {participant.screenShare && (
@@ -141,6 +161,7 @@ export function VideoGrid() {
   const participants = useMeetingStore((s) => s.participants)
   const view = useMeetingStore((s) => s.view)
   const selfSpeaking = useMeetingStore((s) => s.isSelfSpeaking)
+  const [profileUserId, setProfileUserId] = useState<string | null>(null)
 
   const speakerIds = participants.filter((p) => !p.screenShare).map((p) => p.id)
   const simulatedSpeakers = useSimulatedSpeakers(speakerIds)
@@ -157,6 +178,7 @@ export function VideoGrid() {
   if (view === 'screen-share' && share) {
     return (
       <div className="flex h-full flex-col gap-3 p-3 sm:p-4">
+        <ParticipantProfileDialog userId={profileUserId} onClose={() => setProfileUserId(null)} />
         <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-muted/40">
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <MonitorUp className="h-10 w-10 text-muted-foreground/60" />
@@ -172,7 +194,11 @@ export function VideoGrid() {
         <div className="flex shrink-0 gap-3 overflow-x-auto pb-1">
           {people.map((p, i) => (
             <div key={p.id} className="w-44 shrink-0 sm:w-56">
-              <VideoTile participant={p} index={i} />
+              <VideoTile
+                participant={p}
+                index={i}
+                onOpenProfile={(id) => setProfileUserId(id)}
+              />
             </div>
           ))}
         </div>
@@ -189,8 +215,14 @@ export function VideoGrid() {
 
   return (
     <div className={cn('grid h-full auto-rows-fr gap-3 overflow-y-auto p-3 sm:p-4', gridClass)}>
+      <ParticipantProfileDialog userId={profileUserId} onClose={() => setProfileUserId(null)} />
       {people.map((p, i) => (
-        <VideoTile key={p.id} participant={p} index={i} />
+        <VideoTile
+          key={p.id}
+          participant={p}
+          index={i}
+          onOpenProfile={(id) => setProfileUserId(id)}
+        />
       ))}
     </div>
   )
