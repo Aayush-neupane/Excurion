@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { motion } from 'framer-motion'
-import { Check, Copy, PhoneOff, Projector, Radio, Wifi, WifiOff, XCircle } from 'lucide-react'
+import { Check, Copy, Lock, PhoneOff, Projector, Radio, Wifi, WifiOff, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStopwatch, useOnlineStatus } from '@/hooks'
 import { formatDuration } from '@/lib/utils'
@@ -71,8 +71,14 @@ export function MeetingTopBar() {
         </span>
         <div className="min-w-0">
           <h1 className="truncate text-sm font-semibold leading-tight">{meeting.title}</h1>
-          <p className="hidden truncate text-[11px] text-muted-foreground sm:block">
-            Hosted by {hostName} · code {meeting.roomCode}
+          <p className="hidden truncate text-[11px] text-muted-foreground sm:block flex items-center gap-1.5">
+            Hosted by {hostName}
+            {meeting.privacy === 'private' && (
+              <>
+                <Lock className="h-3 w-3" aria-hidden />
+                <span className="text-xs font-medium text-muted-foreground">Private</span>
+              </>
+            )}
           </p>
         </div>
       </div>

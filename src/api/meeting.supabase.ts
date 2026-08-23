@@ -18,6 +18,7 @@ interface RoomRow {
   room_code: string
   host_id: string
   status: 'live' | 'scheduled' | 'ended' | 'recording'
+  privacy?: 'public' | 'private' | null
   scheduled_at: string | null
   duration_minutes: number | null
   recording_url: string | null
@@ -50,7 +51,7 @@ interface ParticipantRow {
   } | null
 }
 
-function toMeeting(row: RoomRow, participantCount: number): Meeting {
+function toMeeting(row: any, participantCount: number): Meeting {
   return {
     id: row.id,
     title: row.title,
@@ -66,6 +67,7 @@ function toMeeting(row: RoomRow, participantCount: number): Meeting {
     recordingUrl: row.recording_url ?? undefined,
     startedAt: row.started_at ?? undefined,
     endedAt: row.ended_at ?? undefined,
+    privacy: row.privacy ?? 'private',
   }
 }
 
@@ -89,7 +91,7 @@ function toParticipant(row: ParticipantRow): Participant {
 }
 
 const ROOM_COLUMNS =
-  'id, title, description, type, subject, room_code, host_id, status, scheduled_at, duration_minutes, recording_url, started_at, ended_at, created_at'
+  'id, title, description, type, subject, room_code, host_id, status, privacy, scheduled_at, duration_minutes, recording_url, started_at, ended_at, created_at'
 
 const PARTICIPANT_COLUMNS =
   'id, room_id, user_id, is_host, mic, camera, screen_share, speaking, raised_hand, connection, joined_at, status, last_seen_at, profiles(name, role, avatar_url)'
@@ -189,7 +191,7 @@ export const supabaseMeetingApi = {
     if (error) throw new Error(mapErrors(error.message))
     if (!room) throw new Error('Meeting not found.')
     const counts = await fetchParticipantCounts([room.id])
-    return toMeeting(room, counts.get(room.id) ?? 0)
+                    return toMeeting(room as any, counts.get(room.id) ?? 0)
   },
 
   async findMeetingByCode(roomCode: string): Promise<Meeting | null> {
@@ -203,7 +205,7 @@ export const supabaseMeetingApi = {
     if (error) throw new Error(error.message)
     if (!room) return null
     const counts = await fetchParticipantCounts([room.id])
-    return toMeeting(room, counts.get(room.id) ?? 0)
+                    return toMeeting(room as any, counts.get(room.id) ?? 0)
   },
 
   async getUpcoming(): Promise<Meeting[]> {
@@ -217,7 +219,7 @@ export const supabaseMeetingApi = {
 
     if (error) throw new Error(error.message)
     const counts = await fetchParticipantCounts((rooms ?? []).map((r) => r.id))
-    return (rooms ?? []).map((r) => toMeeting(r, counts.get(r.id) ?? 0))
+    return (rooms ?? []).map((r: any) => toMeeting(r, counts.get(r.id) ?? 0))
   },
   async getRecent(): Promise<Meeting[]> {
     const supabase = getSupabase()
@@ -365,7 +367,7 @@ export const supabaseMeetingApi = {
     if (error) throw new Error(error.message)
     if (!room) return null
     const counts = await fetchParticipantCounts([room.id])
-    return toMeeting(room, counts.get(room.id) ?? 0)
+                    return toMeeting(room as any, counts.get(room.id) ?? 0)
   },
 
   async joinRoom({ roomCode, password }: JoinMeetingInput): Promise<JoinRoomResult> {

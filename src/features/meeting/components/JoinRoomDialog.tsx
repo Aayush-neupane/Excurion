@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation } from '@tanstack/react-query'
-import { KeyRound } from 'lucide-react'
+import { KeyRound, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { meetingApi } from '@/api'
 import { useUIStore } from '@/store/useUIStore'
@@ -34,9 +34,10 @@ export function JoinRoomDialog() {
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
   const [needsPassword, setNeedsPassword] = useState(false)
+  const [roomPrivate, setRoomPrivate] = useState(false)
 
   const mutation = useMutation({
-    mutationFn: () => meetingApi.joinRoom({ roomCode: code, password: needsPassword ? password : undefined }),
+    mutationFn: () => meetingApi.joinRoom({ roomCode: code, password: (needsPassword || roomPrivate) ? password : undefined }),
     onSuccess: (result) => {
       closeDialog('join-room')
       setCode('')
@@ -47,7 +48,14 @@ export function JoinRoomDialog() {
     onError: (error: Error) => {
       if (error.message.includes('password-protected')) {
         setNeedsPassword(true)
+        setRoomPrivate(true)
         toast.info('This room is protected — enter its password.')
+        return
+      }
+      if (error.message.includes('private room') || error.message.includes('invitation')) {
+        setRoomPrivate(true)
+        setNeedsPassword(false)
+        toast.error('This is a private room. You need an invitation or the password to join.')
         return
       }
       toast.error(error.message)
@@ -96,7 +104,21 @@ export function JoinRoomDialog() {
             </p>
           </div>
 
-          {needsPassword && (
+          {roomPrivate && (
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2">
+              <div className="flex items-center gap-2 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+                <div>
+                  <p className="font-medium">This is a private room</p>
+                  <p className="text-xs text-destructive/80">
+                    You need an invitation from the host or the room password to join.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(needsPassword || roomPrivate) && (
             <div className="space-y-2">
               <Label htmlFor="join-password">Room password</Label>
               <div className="relative">
@@ -113,6 +135,11 @@ export function JoinRoomDialog() {
                   required
                 />
               </div>
+              <p className="text-xs text-muted-foreground">
+                {roomPrivate && !needsPassword
+                  ? 'Enter the room password, or ask the host for an invitation.'
+                  : 'Enter the room password to join.'}
+              </p>
             </div>
           )}
 

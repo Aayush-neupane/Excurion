@@ -19,6 +19,7 @@ export interface Meeting {
   recordingUrl?: string
   startedAt?: string
   endedAt?: string
+  privacy?: 'public' | 'private'
 }
 
 export interface CreateMeetingInput {
