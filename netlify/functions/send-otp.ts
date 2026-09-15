@@ -91,7 +91,7 @@ export default async function handler(request: Request) {
   })
   if (codeError) {
     console.error(JSON.stringify({ level: 'error', event: 'send-otp', email, purpose, error: codeError.message }))
-    return json(429, { error: 'otp_rate_limited' })
+    return json(429, { error: codeError.message })
   }
 
   const apiKey = process.env.RESEND_API_KEY
