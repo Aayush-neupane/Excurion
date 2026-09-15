@@ -14,7 +14,16 @@ interface ProfileRow {
   created_at: string
 }
 
-export function profileToUser(row: ProfileRow): User {
+export interface LiveRoom {
+  id: string
+  title: string
+  started_at: string | null
+  participant_count: number
+}
+
+export type ProfileWithLiveRooms = User & { liveRooms: LiveRoom[] }
+
+function profileToUser(row: ProfileRow): User {
   return {
     id: row.id,
     name: row.name,
@@ -32,18 +41,52 @@ export function profileToUser(row: ProfileRow): User {
 const PROFILE_COLUMNS =
   'id, name, email, role, avatar_url, title, timezone, bio, company, created_at'
 
+export function profileToUserWithLiveRooms(
+  row: ProfileRow,
+  liveRooms: LiveRoom[],
+): ProfileWithLiveRooms {
+  return {
+    ...profileToUser(row),
+    liveRooms,
+  }
+}
+
 export const supabaseProfileApi = {
-  async getProfile(): Promise<User> {
+  async getProfile(): Promise<ProfileWithLiveRooms> {
     const supabase = getSupabase()
     const user = (await supabase.auth.getUser()).data.user
     if (!user) throw new Error('Not signed in.')
-    const { data, error } = await supabase
+    
+    // Fetch profile
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select(PROFILE_COLUMNS)
       .eq('id', user.id)
       .single()
-    if (error) throw new Error(error.message)
-    return profileToUser(data)
+    if (profileError) throw new Error(profileError.message)
+    
+    // Fetch live rooms
+    const { data: roomsData, error: roomsError } = await supabase
+      .from('rooms')
+      .select(`
+        id,
+        title,
+        started_at,
+        privacy
+      `)
+      .eq('host_id', user.id)
+      .eq('status', 'live')
+    
+    if (roomsError) throw new Error(roomsError.message)
+    
+    const liveRooms: LiveRoom[] = (roomsData || []).map((room: { id: string; title: string; started_at: string | null }) => ({
+      id: room.id,
+      title: room.title,
+      started_at: room.started_at ?? null,
+      participant_count: 0, // Could add count query if needed
+    }))
+    
+    return profileToUserWithLiveRooms(profileData, liveRooms)
   },
 
   async getProfileById(id: string): Promise<User | null> {

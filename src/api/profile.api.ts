@@ -2,12 +2,12 @@ import type { ProfileUpdate, User } from '@/types/user'
 import { currentUser } from '@/data/users'
 import { mockResult } from './client'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
-import { supabaseProfileApi } from './profile.supabase'
+import { supabaseProfileApi, type ProfileWithLiveRooms } from './profile.supabase'
 
 import { getUserById } from '@/data/users'
 
 export interface ProfileApi {
-  getProfile(): Promise<User>
+  getProfile(): Promise<ProfileWithLiveRooms>
   getProfileById(id: string): Promise<User | null>
   updateProfile(input: ProfileUpdate): Promise<User>
   uploadAvatar(file: File): Promise<{ avatarUrl: string }>
@@ -15,7 +15,7 @@ export interface ProfileApi {
 
 export const mockProfileApi: ProfileApi = {
   async getProfile() {
-    return mockResult(currentUser, 400)
+    return mockResult({ ...currentUser, liveRooms: [] }, 400)
   },
 
   async getProfileById(id) {

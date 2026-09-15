@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/common/ErrorState'
 import { UserAvatar } from '@/components/common/UserAvatar'
+import { Badge } from '@/components/ui/badge'
 
 const TIMEZONES = [
   { label: 'America/New_York', value: 'America/New_York' },
@@ -116,7 +117,7 @@ export default function ProfilePage() {
           <div className="relative flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-end">
             <div className="-mt-10">
               <label
-                className="group relative block cursor-pointer"
+                className="group relative cursor-pointer"
                 aria-label="Upload profile picture"
               >
                 <UserAvatar
@@ -165,6 +166,12 @@ export default function ProfilePage() {
                 </span>
               </div>
             </div>
+            {/* Ongoing Classes Badge */}
+            {profile.liveRooms && profile.liveRooms.length > 0 && (
+              <Badge variant="secondary" className="mt-2">
+                <span className="font-medium">Active Classes:</span> {profile.liveRooms.length}
+              </Badge>
+            )}
           </div>
         </CardContent>
       </Card>
