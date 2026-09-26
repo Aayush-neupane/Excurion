@@ -64,6 +64,31 @@ export function Footer() {
             Made with care for educators everywhere.
           </p>
         </div>
+
+        <div className="mt-6 flex flex-col items-center justify-center gap-2 border-t border-border pt-6">
+          <a
+            href="https://dynamic-aayush38.netlify.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Aayush Neupane — portfolio"
+            className="group flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <img
+              src="/logotrp.png"
+              alt="Aayush Neupane"
+              width={32}
+              height={32}
+              draggable={false}
+              className="h-8 w-8 rounded-full border object-cover transition-colors group-hover:border-primary logo-adapt"
+            />
+            <span>
+              Developed by{' '}
+              <span className="text-foreground underline-offset-4 group-hover:text-primary group-hover:underline">
+                Aayush Neupane
+              </span>
+            </span>
+          </a>
+        </div>
       </div>
     </footer>
   )

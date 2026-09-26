@@ -346,6 +346,9 @@
   }
 }
 
+/* Silver credit logo turns black in light theme */
+.light .logo-adapt { filter: brightness(0); }
+
 /* Framer Motion helpers (shared durations live with the tokens above) */
 :root {
   --motion-fast: 0.16s;
