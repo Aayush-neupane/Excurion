@@ -74,7 +74,7 @@ export function Footer() {
             className="group flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground"
           >
             <img
-              src="/logotrp.png"
+              src="/logo.svg"
               alt="Aayush Neupane"
               width={32}
               height={32}
