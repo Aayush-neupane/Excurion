@@ -168,6 +168,8 @@ begin
     set status = 'ended', ended_at = now(), updated_at = now()
   where id = p_room_id;
 
+  delete from public.rooms where id = p_room_id;
+
   update public.participants
     set status = 'left', left_at = now()
   where room_id = p_room_id and status = 'active';

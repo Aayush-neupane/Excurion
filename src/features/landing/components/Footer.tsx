@@ -67,7 +67,7 @@ export function Footer() {
 
         <div className="mt-6 flex flex-col items-center justify-center gap-2 border-t border-border pt-6">
           <a
-            href="https://dynamic-aayush38.netlify.app"
+            href="https://aayushnp.netlify.app"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Aayush Neupane — portfolio"
